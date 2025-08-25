@@ -2,14 +2,13 @@ import { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useNavigation } from '@react-navigation/native';
 
 import colors from './colors'; // 👈 archivo donde guardamos las variables
 
 export default function Desplegable() {
   const [abierto, setAbierto] = useState(false);
+  const navigation = useNavigation();
 
   const toggleMenu = () => {
     setAbierto(!abierto);
@@ -27,37 +26,37 @@ export default function Desplegable() {
       {abierto && (
         <View style={styles.menu}>
 
-          <TouchableOpacity style={styles.opcion}>
+          <TouchableOpacity style={styles.opcion} onPress={() => navigation.navigate("Usuario")}>
             <FontAwesome name="user" size={16} color="#fff" />
             <Text style={styles.textoOpcion}> Usuario</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.opcion}>
+          <TouchableOpacity style={styles.opcion} onPress={() => navigation.navigate("Curso")}>
             <FontAwesome5 name="layer-group" size={16} color="#fff" />
             <Text style={styles.textoOpcion}> Cursos</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.opcion}>
+          <TouchableOpacity style={styles.opcion} onPress={() => navigation.navigate("Horario")}>
             <FontAwesome name="calendar" size={16} color="#fff" />
             <Text style={styles.textoOpcion}> Horarios</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.opcion}>
+          <TouchableOpacity style={styles.opcion} onPress={() => navigation.navigate("Aula")}>
             <FontAwesome name="users" size={16} color="#fff" />
             <Text style={styles.textoOpcion}> Aulas</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.opcion}>
+          <TouchableOpacity style={styles.opcion} onPress={() => navigation.navigate("Noticia")}>
             <FontAwesome name="newspaper-o" size={16} color="#fff" />
             <Text style={styles.textoOpcion}> Noticias</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.opcion}>
+          <TouchableOpacity style={styles.opcion} onPress={() => navigation.navigate("Reporte")}>
             <FontAwesome name="folder" size={16} color="#fff" />
             <Text style={styles.textoOpcion}> Reportes</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.opcion}>
+          <TouchableOpacity style={styles.opcion} onPress={() => navigation.navigate("Login")}>
             <FontAwesome name="sign-out" size={16} color="#fff" />
             <Text style={styles.textoOpcion}> Salir</Text>
           </TouchableOpacity>

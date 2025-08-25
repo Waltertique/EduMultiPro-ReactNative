@@ -9,7 +9,7 @@ import Footer from '../footer';
 import Desplegable from '../Desplegable';
 import colors from '../colors'; // 👈 archivo donde guardamos las variables
 
-export default function Usuario({ navigation }) {
+export default function Aula({ navigation }) {
 
     const [page, setPage] = React.useState(0);
     const itemsPerPage = 5;
@@ -17,22 +17,22 @@ export default function Usuario({ navigation }) {
 
     // Datos estáticos de ejemplo
     const data = [
-        { id: '1', pNombre: 'Juan', sNombre: 'Carlos', pApellido: 'Pérez', sApellido: 'Gómez' },
-        { id: '2', pNombre: 'María', sNombre: 'Luisa', pApellido: 'Rodríguez', sApellido: 'Díaz' },
-        { id: '3', pNombre: 'Pedro', sNombre: 'José', pApellido: 'Martínez', sApellido: 'Torres' },
-        { id: '4', pNombre: 'Ana', sNombre: 'Isabel', pApellido: 'Ramírez', sApellido: 'Mora' },
-        { id: '5', pNombre: 'Sofía', sNombre: 'Alejandra', pApellido: 'García', sApellido: 'López' },
-        { id: '6', pNombre: 'Luis', sNombre: 'Miguel', pApellido: 'Fernández', sApellido: 'Castro' },
+        { id: '1', Aula: 'Aula Matematicas', Materia: 'Matematicas', Curso: '101', Profesor: 'juan Gómez' },
+        { id: '2', Aula: 'Aula Matematicas', Materia: 'Matematicas', Curso: '101', Profesor: 'juan Díaz' },
+        { id: '3', Aula: 'Aula Matematicas', Materia: 'Matematicas', Curso: '101', Profesor: 'juan Torres' },
+        { id: '4', Aula: 'Aula Matematicas', Materia: 'Matematicas', Curso: '101', Profesor: 'juan Mora' },
+        { id: '5', Aula: 'Aula Matematicas', Materia: 'Matematicas', Curso: '101', Profesor: 'juan López' },
+        { id: '6', Aula: 'Aula Matematicas', Materia: 'Matematicas', Curso: '101', Profesor: 'juan Castro' },
     ];
 
     // Filtrado por búsqueda
     const filteredData = data.filter(
         (item) =>
         item.id.includes(search) ||
-        item.pNombre.toLowerCase().includes(search.toLowerCase()) ||
-        item.sNombre.toLowerCase().includes(search.toLowerCase()) ||
-        item.pApellido.toLowerCase().includes(search.toLowerCase()) ||
-        item.sApellido.toLowerCase().includes(search.toLowerCase())
+        item.Aula.toLowerCase().includes(search.toLowerCase()) ||
+        item.Materia.toLowerCase().includes(search.toLowerCase()) ||
+        item.Curso.toLowerCase().includes(search.toLowerCase()) ||
+        item.Profesor.toLowerCase().includes(search.toLowerCase())
     );
 
     // Paginación
@@ -52,10 +52,10 @@ export default function Usuario({ navigation }) {
         <View style={styles.centroUsuario}>
 
             <View style={styles.tituloUsuario}>
-                <Text style={styles.titleUsuario}>Gestion de Usuarios</Text>
+                <Text style={styles.titleUsuario}>Aulas Actuales</Text>
                 
-                <TouchableOpacity style={styles.botonCrearUsuario} onPress={() => navigation.navigate('CrearUsuario')}>
-                    <FontAwesome name="user" size={16} color="#fff" />
+                <TouchableOpacity style={styles.botonCrearUsuario} onPress={() => navigation.navigate('CrearAula')}>
+                    <FontAwesome name="users" size={16} color="#fff" />
                     <Text style={styles.textoCrearUsuario}> Crear</Text>
                 </TouchableOpacity>
 
@@ -85,39 +85,44 @@ export default function Usuario({ navigation }) {
                         <DataTable>
                         <DataTable.Header>
                             <DataTable.Title style={styles.tablaHead}>ID</DataTable.Title>
-                            <DataTable.Title style={styles.tablaHead}>P Nombre</DataTable.Title>
-                            <DataTable.Title style={styles.tablaHead}>S Nombre</DataTable.Title>
-                            <DataTable.Title style={styles.tablaHead}>P Apellido</DataTable.Title>
-                            <DataTable.Title style={styles.tablaHead}>S Apellido</DataTable.Title>
+                            <DataTable.Title style={styles.tablaHead}>Aula</DataTable.Title>
+                            <DataTable.Title style={styles.tablaHead}>Materia</DataTable.Title>
+                            <DataTable.Title style={styles.tablaHead}>Curso</DataTable.Title>
+                            <DataTable.Title style={styles.tablaHead}>Profesor</DataTable.Title>
                             <DataTable.Title style={styles.tablaHead}>Infomacion</DataTable.Title>
+                            <DataTable.Title style={styles.tablaHead}>Modificar</DataTable.Title>
                             <DataTable.Title style={styles.tablaHead}>Eliminar</DataTable.Title>
                         </DataTable.Header>
-
-                        {filteredData.slice(from, to).map((usuario, index) => (
+                    
+                        {filteredData.slice(from, to).map((Aula, index) => (
                             <DataTable.Row key={index}>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{Aula.id}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{Aula.Aula}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{Aula.Materia}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{Aula.Curso}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{Aula.Profesor}</Text></DataTable.Cell>
 
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.id}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.pNombre}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.sNombre}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.pApellido}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.sApellido}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}>
+                                <TouchableOpacity style={styles.botonAccion} onPress={() => navigation.navigate('VerAula')}>
+                                    <FontAwesome name="info" size={16} color="#fff" />
+                                </TouchableOpacity>
+                            </DataTable.Cell>
 
-                                <DataTable.Cell style={styles.tablaBody}>
-                                    <TouchableOpacity style={styles.botonAccion} onPress={() => navigation.navigate('VerUsuario')}>
-                                        <FontAwesome name="info" size={16} color="#fff" />
-                                    </TouchableOpacity>
-                                </DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}>
+                                <TouchableOpacity style={styles.botonModificar}>
+                                    <FontAwesome name="edit" size={16} color="#fff" />
+                                </TouchableOpacity>
+                            </DataTable.Cell>
 
-                                <DataTable.Cell style={styles.tablaBody}>
-                                    <TouchableOpacity style={styles.botonEliminar}>
-                                        <FontAwesome name="trash" size={16} color="#fff" />
-                                    </TouchableOpacity>
-                                </DataTable.Cell>
-
+                            <DataTable.Cell style={styles.tablaBody}>
+                                <TouchableOpacity style={styles.botonEliminar}>
+                                    <FontAwesome name="trash" size={16} color="#fff" />
+                                </TouchableOpacity>
+                            </DataTable.Cell>
                             </DataTable.Row>
                         ))}
-
-
+                    
+                    
                         {/* Paginación */}
                         <DataTable.Pagination
                             page={page}
@@ -208,8 +213,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#333',
     },
-
-    // Estilos de la tabla
+// Estilos de la tabla
     // Estilos th
     tablaHead: {
         justifyContent: 'center', 
@@ -220,7 +224,7 @@ const styles = StyleSheet.create({
     // Estilos td
     tablaBody: {
         justifyContent: 'center', 
-        width: 100,
+        width: 150, 
         borderWidth: 1, 
         borderColor: colors.azulPrimario
     },

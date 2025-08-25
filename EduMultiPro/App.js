@@ -1,3 +1,4 @@
+// App.js
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -5,7 +6,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Encabezado from './Encabezado';
 import Footer from './footer';
 import colors from './colors'; 
-import Usuario from './Admin/Usuario'; // pantalla destino
+import AdminStack from './Admin/AdminStack'; // 👈 importamos el stack del admin
 import PrincipalCoordinador from './Coordinador/PrincipalCoordinador';
 import PrincipalProfesor from './Profesor/PrincipalProfesor';
 import PrincipalAlumno from './Alumno/PrincipalAlumno';
@@ -23,7 +24,7 @@ function LoginScreen({ navigation }) {
     if (contrasena === '12345') {
       switch (correo) {
         case 'admin@gmail.com':
-          navigation.navigate('Usuario');
+          navigation.navigate('AdminStack'); // 👈 va al stack de Admin
           break;
         case 'coordinador@gmail.com':
           navigation.navigate('PrincipalCoordinador');
@@ -89,16 +90,21 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator>
+        {/* Login */}
         <Stack.Screen 
           name="Login" 
           component={LoginScreen} 
           options={{ headerShown: false }} 
         />
+
+        {/* Admin Stack con todas las pantallas del admin */}
         <Stack.Screen 
-          name="Usuario" 
-          component={Usuario} 
+          name="AdminStack" 
+          component={AdminStack} 
           options={{ headerShown: false }} 
         />
+
+        {/* Otros roles */}
         <Stack.Screen 
           name="PrincipalCoordinador" 
           component={PrincipalCoordinador} 

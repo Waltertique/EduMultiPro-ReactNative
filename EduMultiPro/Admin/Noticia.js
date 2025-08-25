@@ -9,7 +9,7 @@ import Footer from '../footer';
 import Desplegable from '../Desplegable';
 import colors from '../colors'; // 👈 archivo donde guardamos las variables
 
-export default function Usuario({ navigation }) {
+export default function Noticia({ navigation }) {
 
     const [page, setPage] = React.useState(0);
     const itemsPerPage = 5;
@@ -17,22 +17,20 @@ export default function Usuario({ navigation }) {
 
     // Datos estáticos de ejemplo
     const data = [
-        { id: '1', pNombre: 'Juan', sNombre: 'Carlos', pApellido: 'Pérez', sApellido: 'Gómez' },
-        { id: '2', pNombre: 'María', sNombre: 'Luisa', pApellido: 'Rodríguez', sApellido: 'Díaz' },
-        { id: '3', pNombre: 'Pedro', sNombre: 'José', pApellido: 'Martínez', sApellido: 'Torres' },
-        { id: '4', pNombre: 'Ana', sNombre: 'Isabel', pApellido: 'Ramírez', sApellido: 'Mora' },
-        { id: '5', pNombre: 'Sofía', sNombre: 'Alejandra', pApellido: 'García', sApellido: 'López' },
-        { id: '6', pNombre: 'Luis', sNombre: 'Miguel', pApellido: 'Fernández', sApellido: 'Castro' },
+        { id: '1', Titulo: 'Lanzamiento de EduMultiPro', Tipo: 'Noticia Principal 1'},
+        { id: '2', Titulo: 'Nueva actualización de Mercaplus', Tipo: 'Noticia Principal 1'},
+        { id: '3', Titulo: 'Conferencia sobre tecnología educativa', Tipo: 'Noticia Principal 1'},
+        { id: '4', Titulo: 'Taller de desarrollo de software', Tipo: 'Noticia Principal 1'},
+        { id: '5', Titulo: 'Importancia del reciclaje en las instituciones', Tipo: 'Noticia Principal 1'},
+        { id: '6', Titulo: 'Eventos académicos en 2025', Tipo: 'Noticia Principal 1'},
     ];
 
     // Filtrado por búsqueda
     const filteredData = data.filter(
         (item) =>
         item.id.includes(search) ||
-        item.pNombre.toLowerCase().includes(search.toLowerCase()) ||
-        item.sNombre.toLowerCase().includes(search.toLowerCase()) ||
-        item.pApellido.toLowerCase().includes(search.toLowerCase()) ||
-        item.sApellido.toLowerCase().includes(search.toLowerCase())
+        item.Titulo.toLowerCase().includes(search.toLowerCase()) ||
+        item.Tipo.toLowerCase().includes(search.toLowerCase())
     );
 
     // Paginación
@@ -52,10 +50,10 @@ export default function Usuario({ navigation }) {
         <View style={styles.centroUsuario}>
 
             <View style={styles.tituloUsuario}>
-                <Text style={styles.titleUsuario}>Gestion de Usuarios</Text>
+                <Text style={styles.titleUsuario}>Noticias Actuales</Text>
                 
-                <TouchableOpacity style={styles.botonCrearUsuario} onPress={() => navigation.navigate('CrearUsuario')}>
-                    <FontAwesome name="user" size={16} color="#fff" />
+                <TouchableOpacity style={styles.botonCrearUsuario} onPress={() => navigation.navigate('CrearNoticia')}>
+                    <FontAwesome name="newspaper-o" size={16} color="#fff" />
                     <Text style={styles.textoCrearUsuario}> Crear</Text>
                 </TouchableOpacity>
 
@@ -85,39 +83,40 @@ export default function Usuario({ navigation }) {
                         <DataTable>
                         <DataTable.Header>
                             <DataTable.Title style={styles.tablaHead}>ID</DataTable.Title>
-                            <DataTable.Title style={styles.tablaHead}>P Nombre</DataTable.Title>
-                            <DataTable.Title style={styles.tablaHead}>S Nombre</DataTable.Title>
-                            <DataTable.Title style={styles.tablaHead}>P Apellido</DataTable.Title>
-                            <DataTable.Title style={styles.tablaHead}>S Apellido</DataTable.Title>
+                            <DataTable.Title style={styles.tablaHead}>Noticia</DataTable.Title>
+                            <DataTable.Title style={styles.tablaHead}>Tipo</DataTable.Title>
                             <DataTable.Title style={styles.tablaHead}>Infomacion</DataTable.Title>
+                            <DataTable.Title style={styles.tablaHead}>Modificar</DataTable.Title>
                             <DataTable.Title style={styles.tablaHead}>Eliminar</DataTable.Title>
                         </DataTable.Header>
-
-                        {filteredData.slice(from, to).map((usuario, index) => (
+                    
+                        {filteredData.slice(from, to).map((Noticia, index) => (
                             <DataTable.Row key={index}>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{Noticia.id}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{Noticia.Titulo}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{Noticia.Tipo}</Text></DataTable.Cell>
 
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.id}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.pNombre}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.sNombre}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.pApellido}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.sApellido}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}>
+                                <TouchableOpacity style={styles.botonAccion} onPress={() => navigation.navigate('VerNoticia')}>
+                                    <FontAwesome name="info" size={16} color="#fff" />
+                                </TouchableOpacity>
+                            </DataTable.Cell>
 
-                                <DataTable.Cell style={styles.tablaBody}>
-                                    <TouchableOpacity style={styles.botonAccion} onPress={() => navigation.navigate('VerUsuario')}>
-                                        <FontAwesome name="info" size={16} color="#fff" />
-                                    </TouchableOpacity>
-                                </DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}>
+                                <TouchableOpacity style={styles.botonModificar} onPress={() => navigation.navigate('ActualizarNoticia')}>
+                                    <FontAwesome name="edit" size={16} color="#fff" />
+                                </TouchableOpacity>
+                            </DataTable.Cell>
 
-                                <DataTable.Cell style={styles.tablaBody}>
-                                    <TouchableOpacity style={styles.botonEliminar}>
-                                        <FontAwesome name="trash" size={16} color="#fff" />
-                                    </TouchableOpacity>
-                                </DataTable.Cell>
-
+                            <DataTable.Cell style={styles.tablaBody}>
+                                <TouchableOpacity style={styles.botonEliminar}>
+                                    <FontAwesome name="trash" size={16} color="#fff" />
+                                </TouchableOpacity>
+                            </DataTable.Cell>
                             </DataTable.Row>
                         ))}
-
-
+                    
+                    
                         {/* Paginación */}
                         <DataTable.Pagination
                             page={page}
@@ -208,8 +207,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#333',
     },
-
-    // Estilos de la tabla
+// Estilos de la tabla
     // Estilos th
     tablaHead: {
         justifyContent: 'center', 
@@ -220,7 +218,7 @@ const styles = StyleSheet.create({
     // Estilos td
     tablaBody: {
         justifyContent: 'center', 
-        width: 100,
+        width: 150, 
         borderWidth: 1, 
         borderColor: colors.azulPrimario
     },

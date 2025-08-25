@@ -1,5 +1,6 @@
 import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 
 import * as React from 'react';
 import { DataTable } from 'react-native-paper';
@@ -9,7 +10,7 @@ import Footer from '../footer';
 import Desplegable from '../Desplegable';
 import colors from '../colors'; // 👈 archivo donde guardamos las variables
 
-export default function Usuario({ navigation }) {
+export default function Curso({ navigation }) {
 
     const [page, setPage] = React.useState(0);
     const itemsPerPage = 5;
@@ -17,22 +18,21 @@ export default function Usuario({ navigation }) {
 
     // Datos estáticos de ejemplo
     const data = [
-        { id: '1', pNombre: 'Juan', sNombre: 'Carlos', pApellido: 'Pérez', sApellido: 'Gómez' },
-        { id: '2', pNombre: 'María', sNombre: 'Luisa', pApellido: 'Rodríguez', sApellido: 'Díaz' },
-        { id: '3', pNombre: 'Pedro', sNombre: 'José', pApellido: 'Martínez', sApellido: 'Torres' },
-        { id: '4', pNombre: 'Ana', sNombre: 'Isabel', pApellido: 'Ramírez', sApellido: 'Mora' },
-        { id: '5', pNombre: 'Sofía', sNombre: 'Alejandra', pApellido: 'García', sApellido: 'López' },
-        { id: '6', pNombre: 'Luis', sNombre: 'Miguel', pApellido: 'Fernández', sApellido: 'Castro' },
+        { id: '1', Curso: '101', Grado: 'Primero', Jornada: 'Mañana' },
+        { id: '2', Curso: '201', Grado: 'Segundo', Jornada: 'Mañana' },
+        { id: '3', Curso: '301', Grado: 'Tercero', Jornada: 'Tarde' },
+        { id: '4', Curso: '401', Grado: 'Cuarto', Jornada: 'Tarde' },
+        { id: '5', Curso: '501', Grado: 'Quinto', Jornada: 'Mixta' },
+        { id: '6', Curso: '601', Grado: 'Sexto', Jornada: 'Mixta' },
     ];
 
     // Filtrado por búsqueda
     const filteredData = data.filter(
         (item) =>
         item.id.includes(search) ||
-        item.pNombre.toLowerCase().includes(search.toLowerCase()) ||
-        item.sNombre.toLowerCase().includes(search.toLowerCase()) ||
-        item.pApellido.toLowerCase().includes(search.toLowerCase()) ||
-        item.sApellido.toLowerCase().includes(search.toLowerCase())
+        item.Curso.toLowerCase().includes(search.toLowerCase()) ||
+        item.Grado.toLowerCase().includes(search.toLowerCase()) ||
+        item.Jornada.toLowerCase().includes(search.toLowerCase())
     );
 
     // Paginación
@@ -50,12 +50,35 @@ export default function Usuario({ navigation }) {
         <ScrollView contentContainerStyle={{ flexGrow: 1, alignItems: 'center' }}>
       
         <View style={styles.centroUsuario}>
+            
+            {/* Botones de grados, jornadas y materias */}
+
+            <View style={styles.BotonesPlataforma}>
+
+                <TouchableOpacity style={styles.botonPlataforma} onPress={() => navigation.navigate('Materia')}>
+                    <FontAwesome5 name="book" size={16} color={colors.azulPrimario} />
+                    <Text style={styles.textobotonPlataforma}> Materias</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.botonPlataforma} onPress={() => navigation.navigate('Grado')}>
+                    <FontAwesome5 name="temperature-low" size={16} color={colors.azulPrimario} />
+                    <Text style={styles.textobotonPlataforma}> Grados</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.botonPlataforma} onPress={() => navigation.navigate('Jornada')}>
+                    <FontAwesome5 name="clock" size={16} color={colors.azulPrimario} />
+                    <Text style={styles.textobotonPlataforma}> Jornadas</Text>
+                </TouchableOpacity>
+
+            </View>
+
+            {/* ----------------------------------------- */}
 
             <View style={styles.tituloUsuario}>
-                <Text style={styles.titleUsuario}>Gestion de Usuarios</Text>
+                <Text style={styles.titleUsuario}>Cursos Actuales</Text>
                 
-                <TouchableOpacity style={styles.botonCrearUsuario} onPress={() => navigation.navigate('CrearUsuario')}>
-                    <FontAwesome name="user" size={16} color="#fff" />
+                <TouchableOpacity style={styles.botonCrearUsuario} onPress={() => navigation.navigate('CrearCurso')}>
+                    <FontAwesome5 name="layer-group" size={16} color="#fff" />
                     <Text style={styles.textoCrearUsuario}> Crear</Text>
                 </TouchableOpacity>
 
@@ -85,36 +108,40 @@ export default function Usuario({ navigation }) {
                         <DataTable>
                         <DataTable.Header>
                             <DataTable.Title style={styles.tablaHead}>ID</DataTable.Title>
-                            <DataTable.Title style={styles.tablaHead}>P Nombre</DataTable.Title>
-                            <DataTable.Title style={styles.tablaHead}>S Nombre</DataTable.Title>
-                            <DataTable.Title style={styles.tablaHead}>P Apellido</DataTable.Title>
-                            <DataTable.Title style={styles.tablaHead}>S Apellido</DataTable.Title>
+                            <DataTable.Title style={styles.tablaHead}>Curso</DataTable.Title>
+                            <DataTable.Title style={styles.tablaHead}>Grado</DataTable.Title>
+                            <DataTable.Title style={styles.tablaHead}>Jornada</DataTable.Title>
                             <DataTable.Title style={styles.tablaHead}>Infomacion</DataTable.Title>
+                            <DataTable.Title style={styles.tablaHead}>Modificar</DataTable.Title>
                             <DataTable.Title style={styles.tablaHead}>Eliminar</DataTable.Title>
                         </DataTable.Header>
 
-                        {filteredData.slice(from, to).map((usuario, index) => (
-                            <DataTable.Row key={index}>
+                        {filteredData.slice(from, to).map((curso, index) => (
+                        <DataTable.Row key={index}>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{curso.id}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{curso.Curso}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{curso.Grado}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{curso.Jornada}</Text></DataTable.Cell>
 
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.id}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.pNombre}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.sNombre}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.pApellido}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.sApellido}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}>
+                                <TouchableOpacity style={styles.botonAccion} onPress={() => navigation.navigate('VerCurso')}>
+                                    <FontAwesome name="info" size={16} color="#fff" />
+                                </TouchableOpacity>
+                            </DataTable.Cell>
+                            
+                            <DataTable.Cell style={styles.tablaBody}>
+                                <TouchableOpacity style={styles.botonModificar}>
+                                    <FontAwesome name="edit" size={16} color="#fff" />
+                                </TouchableOpacity>
+                            </DataTable.Cell>
 
-                                <DataTable.Cell style={styles.tablaBody}>
-                                    <TouchableOpacity style={styles.botonAccion} onPress={() => navigation.navigate('VerUsuario')}>
-                                        <FontAwesome name="info" size={16} color="#fff" />
-                                    </TouchableOpacity>
-                                </DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}>
+                                <TouchableOpacity style={styles.botonEliminar}>
+                                    <FontAwesome name="trash" size={16} color="#fff" />
+                                </TouchableOpacity>
+                            </DataTable.Cell>
 
-                                <DataTable.Cell style={styles.tablaBody}>
-                                    <TouchableOpacity style={styles.botonEliminar}>
-                                        <FontAwesome name="trash" size={16} color="#fff" />
-                                    </TouchableOpacity>
-                                </DataTable.Cell>
-
-                            </DataTable.Row>
+                        </DataTable.Row>
                         ))}
 
 
@@ -208,7 +235,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#333',
     },
-
+    
     // Estilos de la tabla
     // Estilos th
     tablaHead: {
@@ -253,4 +280,25 @@ const styles = StyleSheet.create({
     },
     // Fin tabla
 
+    //botonones plataforma
+    BotonesPlataforma:{
+        minWidth: '90%',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 25,
+    },
+    botonPlataforma: {
+        alignItems: 'center',
+        flexDirection: 'column',
+        backgroundColor: 'white',
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 10,
+        width: 95,
+        borderTopColor: colors.azulPrimario,
+        borderTopWidth: 3,
+    },
+    textobotonPlataforma:{
+        color: colors.azulPrimario
+    }
 });
