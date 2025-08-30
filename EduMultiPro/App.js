@@ -1,12 +1,12 @@
-// App.js
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // 👈 Para guardar token/usuario
 
 import Encabezado from './Encabezado';
 import Footer from './footer';
 import colors from './colors'; 
-import AdminStack from './Admin/AdminStack'; // 👈 importamos el stack del admin
+import AdminStack from './Admin/AdminStack';
 import PrincipalCoordinador from './Coordinador/PrincipalCoordinador';
 import PrincipalProfesor from './Profesor/PrincipalProfesor';
 import PrincipalAlumno from './Alumno/PrincipalAlumno';
@@ -20,26 +20,50 @@ function LoginScreen({ navigation }) {
   const [correo, setCorreo] = React.useState('');
   const [contrasena, setContrasena] = React.useState('');
 
-  const handleLogin = () => {
-    if (contrasena === '12345') {
-      switch (correo) {
-        case 'admin@gmail.com':
-          navigation.navigate('AdminStack'); // 👈 va al stack de Admin
-          break;
-        case 'coordinador@gmail.com':
-          navigation.navigate('PrincipalCoordinador');
-          break;
-        case 'profesor@gmail.com':
-          navigation.navigate('PrincipalProfesor');
-          break;
-        case 'alumno@gmail.com':
-          navigation.navigate('PrincipalAlumno');
-          break;
-        default:
-          Alert.alert('Error', 'Usuario o contraseña incorrecto');
+  const handleLogin = async () => {
+    try {
+      const response = await fetch("http://192.168.0.3:3000/api/edumultipro/login", {
+        // 🔹 Si usas emulador Android -> 10.0.2.2
+        // 🔹 Si pruebas en celular físico -> http://IP_DE_TU_PC:3000
+        // 🔹 Si usas iOS simulator -> http://localhost:3000
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ correo, contrasena })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+
+        // Guardar token y usuario en AsyncStorage
+        await AsyncStorage.setItem("token", data.token);
+        await AsyncStorage.setItem("usuario", JSON.stringify(data.usuario));
+
+        const { rol } = data.usuario;
+
+        // Navegar según el rol (igual que en tu web)
+        switch (rol) {
+          case "R004":
+            navigation.replace("AdminStack");
+            break;
+          case "R003":
+            navigation.replace("PrincipalCoordinador");
+            break;
+          case "R002":
+            navigation.replace("PrincipalProfesor");
+            break;
+          case "R001":
+            navigation.replace("PrincipalAlumno");
+            break;
+          default:
+            Alert.alert("Error", "Rol no reconocido");
+        }
+      } else {
+        const err = await response.json();
+        Alert.alert("Error", err.mensaje);
       }
-    } else {
-      Alert.alert('Error', 'Usuario o contraseña incorrecto');
+    } catch (error) {
+      console.error("❌ Error al iniciar sesión:", error);
+      Alert.alert("Error", "No se pudo conectar al servidor");
     }
   };
 
@@ -85,7 +109,7 @@ function LoginScreen({ navigation }) {
   );
 }
 
-// 👉 App envuelve el Stack de navegación
+// 👉 App principal
 export default function App() {
   return (
     <NavigationContainer>
@@ -97,7 +121,7 @@ export default function App() {
           options={{ headerShown: false }} 
         />
 
-        {/* Admin Stack con todas las pantallas del admin */}
+        {/* Admin Stack */}
         <Stack.Screen 
           name="AdminStack" 
           component={AdminStack} 

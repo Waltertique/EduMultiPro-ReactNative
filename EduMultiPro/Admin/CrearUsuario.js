@@ -1,5 +1,6 @@
 import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { Picker } from "@react-native-picker/picker"; //sirve para hacer los select
 
 import * as React from 'react';
 import { DataTable } from 'react-native-paper';
@@ -31,6 +32,48 @@ export default function CrearUsuario({ navigation }) {
                         <Text style={styles.textoCrearUsuario}> Salir</Text>
                     </TouchableOpacity>
     
+                </View>
+
+                <View style={styles.contenedorFormulario}>
+                    <Text style={styles.titleUsuario}>Datos del Usuario</Text>
+                    <TextInput style={styles.datosFormulario} placeholder='N.O Identificacion' keyboardType='numeric'></TextInput>
+                    <TextInput style={styles.datosFormulario} placeholder='Primer Nombre' ></TextInput>
+                    <TextInput style={styles.datosFormulario} placeholder='Segundo Nombre' ></TextInput>
+                    <TextInput style={styles.datosFormulario} placeholder='Primer Apellido' ></TextInput>
+                    <TextInput style={styles.datosFormulario} placeholder='Segundo Apellido' ></TextInput>
+                    <TextInput style={styles.datosFormulario} placeholder='Correo' keyboardType="email-address" autoCapitalize="none"></TextInput>
+                    <View style={{ borderWidth: 1, borderColor: colors.azulPrimario, borderRadius: 20, minWidth: '80%', marginTop: 10}}>
+                        <Picker selectedValue="Rol" onValueChange={() => {}}>
+                            <Picker.Item label="Admin" value="op1" />
+                            <Picker.Item label="Profesor" value="op2" />
+                            <Picker.Item label="Alumno" value="op3" />
+                        </Picker>
+                    </View>
+                    <View style={{ borderWidth: 1, borderColor: colors.azulPrimario, borderRadius: 20, minWidth: '80%', marginTop: 10, marginBottom: 20}}>
+                        <Picker selectedValue="Tipo Documento" onValueChange={() => {}}>
+                            <Picker.Item label="Cedula" value="op1" />
+                            <Picker.Item label="Targeta de identidad" value="op2" />
+                            <Picker.Item label="Cedula de Extrangeria" value="op3" />
+                        </Picker>
+                    </View>
+
+                    <Text style={styles.titleUsuario}>Otros Datos</Text>
+
+                    <TextInput style={styles.datosFormulario} placeholder='Correo Alternativo' keyboardType="email-address" autoCapitalize="none"></TextInput>
+                    <TextInput style={styles.datosFormulario} placeholder='Contacto Principal' keyboardType='numeric'></TextInput>
+                    <TextInput style={styles.datosFormulario} placeholder='Contacto Secundario' keyboardType='numeric'></TextInput>
+                    <TouchableOpacity style={styles.input}>
+                        <Text style={{ color: "gray" }}>Seleccionar fecha</Text>
+                    </TouchableOpacity>
+
+                    {/* Simulación archivo */}
+                    <TouchableOpacity style={styles.input2}>
+                        <Text style={{ color: "gray" }}>Subir archivo</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.botonCrearUsuario}>
+                        <Text style={styles.textoCrearUsuario}> Guardar Usuario</Text>
+                    </TouchableOpacity>
                 </View>
             
             </View>
@@ -65,6 +108,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        borderBottomWidth: 1,
+        paddingBottom: 10,
+        borderColor: colors.azulPrimario,
     },
     botonCrearUsuario: {
         flexDirection: 'row',
@@ -80,6 +126,41 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         color: '#007bbd',
+    },
+    contenedorFormulario:{
+        backgroundColor: 'white',
+        minWidth: '90%',
+        padding: 20,
+        marginTop: 20,
+        borderRadius: 20,
+        alignItems: 'center',
+    },
+    datosFormulario:{
+        borderWidth: 1,
+        borderColor: colors.azulPrimario,
+        borderRadius: 20,
+        paddingVertical: 10,
+        paddingLeft: 20,
+        minWidth: '80%',
+        marginTop: 10,
+    },
+    input: {
+        borderWidth: 1,
+        borderColor: colors.azulPrimario,
+        borderRadius: 20,
+        paddingLeft: 20,
+        marginTop: 10,
+        minWidth: '80%',
+        paddingVertical: 10
+    },
+    input2: {
+        borderWidth: 1,
+        borderColor: colors.azulPrimario,
+        borderRadius: 20,
+        paddingLeft: 20,
+        marginTop: 10,
+        minWidth: '80%',
+        paddingVertical: 10,
+        marginBottom: 15,
     }
-
 });

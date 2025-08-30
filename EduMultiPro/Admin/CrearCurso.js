@@ -1,6 +1,8 @@
 import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
+import { Picker } from "@react-native-picker/picker"; //sirve para hacer los select
+
 import * as React from 'react';
 import { DataTable } from 'react-native-paper';
 
@@ -31,6 +33,31 @@ export default function CrearCurso({ navigation }) {
                         <Text style={styles.textoCrearUsuario}> Salir</Text>
                     </TouchableOpacity>
     
+                </View>
+
+                <View style={styles.formularioModificar}>
+                    <Text style={styles.titleUsuario}>Datos del Curso</Text>
+                    <TextInput style={styles.datosFormulario} placeholder='Nombre' ></TextInput>
+
+                    <View style={{ borderWidth: 1, borderColor: colors.azulPrimario, borderRadius: 20, minWidth: '80%', marginTop: 10}}>
+                        <Picker selectedValue="Grado" onValueChange={() => {}}>
+                            <Picker.Item label="Primero" value="op1" />
+                            <Picker.Item label="Segundo" value="op2" />
+                            <Picker.Item label="Tercero" value="op3" />
+                        </Picker>
+                    </View>
+
+                    <View style={{ borderWidth: 1, borderColor: colors.azulPrimario, borderRadius: 20, minWidth: '80%', marginTop: 10, marginBottom: 20}}>
+                        <Picker selectedValue="Jornada" onValueChange={() => {}}>
+                            <Picker.Item label="Mañana" value="op1" />
+                            <Picker.Item label="Tarder" value="op2" />
+                            <Picker.Item label="Mixta" value="op3" />
+                        </Picker>
+                    </View>
+                    
+                        <TouchableOpacity style={styles.botonCrearUsuario}>
+                            <Text style={styles.textoCrearUsuario}> Guardar Curso</Text>
+                        </TouchableOpacity>
                 </View>
             
             </View>
@@ -65,6 +92,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        borderBottomWidth: 1,
+        borderColor: colors.azulPrimario,
+        paddingBottom: 10,
     },
     botonCrearUsuario: {
         flexDirection: 'row',
@@ -80,6 +110,23 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         color: '#007bbd',
-    }
+    },
+    formularioModificar:{
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 20,
+        minWidth: '90%',
+        marginTop: 20,
+        alignItems: 'center',
+    },
+    datosFormulario:{
+        borderWidth: 1,
+        borderColor: colors.azulPrimario,
+        borderRadius: 20,
+        paddingVertical: 10,
+        paddingLeft: 20,
+        minWidth: '80%',
+        marginTop: 10,
+    },
 
 });

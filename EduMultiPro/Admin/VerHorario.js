@@ -1,4 +1,4 @@
-import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, Button, Image, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 import * as React from 'react';
@@ -24,13 +24,25 @@ export default function VerHorario({ navigation }) {
             <View style={styles.centroUsuario}>
     
                 <View style={styles.tituloUsuario}>
-                    <Text style={styles.titleUsuario}>Ver Horario</Text>
+                    <Text style={styles.titleUsuario}>Informacion Horario</Text>
                     
                     <TouchableOpacity style={styles.botonCrearUsuario} onPress={() => navigation.navigate('Horario')}>
                         <FontAwesome name="user" size={16} color="#fff" />
                         <Text style={styles.textoCrearUsuario}> Salir</Text>
                     </TouchableOpacity>
-    
+                </View>
+
+                <View style={styles.contenedorHoraio}>
+                    <Text style={styles.titleHorario}>horario primero</Text>
+                    <Image 
+                      source={require('../assets/f4.png')} 
+                      style={styles.fotoHorario} 
+                      resizeMode="contain"
+                    />
+                    <View style={styles.contenedorDesc}>
+                        <Text style={styles.textTitleDesc}>Descripcion:</Text>
+                        <Text style={styles.textDesc}>Descripcion del horario</Text>
+                    </View>
                 </View>
             
             </View>
@@ -65,6 +77,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        borderBottomWidth: 1,
+        borderColor: colors.azulPrimario,
+        paddingBottom: 10,
     },
     botonCrearUsuario: {
         flexDirection: 'row',
@@ -80,6 +95,37 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         color: '#007bbd',
+    },
+    contenedorHoraio:{
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 20,
+        minWidth: '90%',
+        marginTop: 20,
+        alignItems: 'center',
+    },
+    fotoHorario:{
+        width: 280,
+        height: 200,
+        marginTop: 10,
+    },
+    titleHorario: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#007bbd',
+        flexWrap: "wrap",
+        width: 250,
+        textAlign: 'center',
+    },
+    contenedorDesc:{
+        width: 260,
+        marginTop: 10,
+    },
+    textTitleDesc: {
+        color: colors.azulPrimario
+    },
+    textDesc:{
+        flexWrap: "wrap",
+        textAlign: 'justify',
     }
-
 });

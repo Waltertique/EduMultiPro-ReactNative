@@ -2,6 +2,8 @@ import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, ScrollView
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 
+import { Picker } from "@react-native-picker/picker"; //sirve para hacer los select
+
 import * as React from 'react';
 import { DataTable } from 'react-native-paper';
 
@@ -81,7 +83,37 @@ export default function Curso({ navigation }) {
                     <FontAwesome5 name="layer-group" size={16} color="#fff" />
                     <Text style={styles.textoCrearUsuario}> Crear</Text>
                 </TouchableOpacity>
+            </View>
 
+            <View style={styles.formularioModificar}>
+                <Text style={styles.titleUsuario}>Modificar Curso</Text>
+                <TextInput style={styles.datosFormulario} placeholder='Nombre' ></TextInput>
+
+                <View style={{ borderWidth: 1, borderColor: colors.azulPrimario, borderRadius: 20, minWidth: '80%', marginTop: 10}}>
+                    <Picker selectedValue="Grado" onValueChange={() => {}}>
+                        <Picker.Item label="Primero" value="op1" />
+                        <Picker.Item label="Segundo" value="op2" />
+                        <Picker.Item label="Tercero" value="op3" />
+                    </Picker>
+                </View>
+
+                <View style={{ borderWidth: 1, borderColor: colors.azulPrimario, borderRadius: 20, minWidth: '80%', marginTop: 10, marginBottom: 20}}>
+                    <Picker selectedValue="Jornada" onValueChange={() => {}}>
+                        <Picker.Item label="Mañana" value="op1" />
+                        <Picker.Item label="Tarder" value="op2" />
+                        <Picker.Item label="Mixta" value="op3" />
+                    </Picker>
+                </View>
+                
+                <View style={styles.formularioModificarBotones}>
+                    <TouchableOpacity style={styles.botonCrearUsuario}>
+                        <Text style={styles.textoCrearUsuario}> Modificar</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.botonCrearUsuario}>
+                        <Text style={styles.textoCrearUsuario}> Cancelar</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
 
             <View style={styles.contenedorTabla}>
@@ -300,5 +332,27 @@ const styles = StyleSheet.create({
     },
     textobotonPlataforma:{
         color: colors.azulPrimario
+    },
+    formularioModificar:{
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 20,
+        minWidth: '90%',
+        marginTop: 20,
+        alignItems: 'center',
+    },
+    datosFormulario:{
+        borderWidth: 1,
+        borderColor: colors.azulPrimario,
+        borderRadius: 20,
+        paddingVertical: 10,
+        paddingLeft: 20,
+        minWidth: '80%',
+        marginTop: 10,
+    },
+    formularioModificarBotones: {
+        flexDirection: 'row',
+        minWidth: '60%',
+        justifyContent: 'space-between',
     }
 });

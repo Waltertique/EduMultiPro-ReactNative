@@ -1,5 +1,6 @@
 import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { Picker } from "@react-native-picker/picker"; //sirve para hacer los select
 
 import * as React from 'react';
 import { DataTable } from 'react-native-paper';
@@ -31,6 +32,35 @@ export default function ActualizarHorario({ navigation }) {
                         <Text style={styles.textoCrearUsuario}> Salir</Text>
                     </TouchableOpacity>
     
+                </View>
+
+                <View style={styles.contenedorFormulario}>
+
+                    <TextInput style={styles.datosFormulario} placeholder='Titulo'></TextInput>
+                    <TextInput style={styles.datosFormulario} placeholder='Descripcion' ></TextInput>
+
+                    <TouchableOpacity style={styles.input2}>
+                        <Text style={{ color: "gray" }}>Subir archivo</Text>
+                    </TouchableOpacity>
+
+                    <View style={{ borderWidth: 1, borderColor: colors.azulPrimario, borderRadius: 20, minWidth: '80%', marginTop: 10}}>
+                        <Picker selectedValue="Profesor" onValueChange={() => {}}>
+                            <Picker.Item label="juan" value="op1" />
+                            <Picker.Item label="perez" value="op2" />
+                            <Picker.Item label="miguel" value="op3" />
+                        </Picker>
+                    </View>
+
+                    <View style={{ borderWidth: 1, borderColor: colors.azulPrimario, borderRadius: 20, minWidth: '80%', marginTop: 10, marginBottom: 20}}>
+                        <Picker selectedValue="Curso" onValueChange={() => {}}>
+                            <Picker.Item label="101" value="op1" />
+                            <Picker.Item label="202" value="op2" />
+                            <Picker.Item label="301" value="op3" />
+                        </Picker>
+                    </View>
+                    <TouchableOpacity style={styles.botonCrearUsuario}>
+                        <Text style={styles.textoCrearUsuario}> Modificar Horario</Text>
+                    </TouchableOpacity>
                 </View>
             
             </View>
@@ -65,6 +95,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        paddingBottom: 10,
+        borderBottomWidth: 1,
+        borderColor: colors.azulPrimario
     },
     botonCrearUsuario: {
         flexDirection: 'row',
@@ -80,6 +113,33 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         color: '#007bbd',
+    },
+    contenedorFormulario:{
+        backgroundColor: 'white',
+        minWidth: '90%',
+        padding: 20,
+        marginTop: 20,
+        borderRadius: 20,
+        alignItems: 'center',
+    },
+    datosFormulario:{
+        borderWidth: 1,
+        borderColor: colors.azulPrimario,
+        borderRadius: 20,
+        paddingVertical: 10,
+        paddingLeft: 20,
+        minWidth: '80%',
+        marginTop: 10,
+    },
+    input2: {
+        borderWidth: 1,
+        borderColor: colors.azulPrimario,
+        borderRadius: 20,
+        paddingLeft: 20,
+        marginTop: 10,
+        minWidth: '80%',
+        paddingVertical: 10,
+        marginBottom: 15,
     }
 
 });

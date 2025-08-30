@@ -1,6 +1,8 @@
 import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
+import { Picker } from "@react-native-picker/picker"; //sirve para hacer los select
+
 import * as React from 'react';
 import { DataTable } from 'react-native-paper';
 
@@ -35,6 +37,38 @@ export default function CrearAula({ navigation }) {
             
             </View>
 
+            <View style={styles.formularioModificar}>
+                <TextInput style={styles.datosFormulario} placeholder='Nombre' ></TextInput>
+
+                <View style={{ borderWidth: 1, borderColor: colors.azulPrimario, borderRadius: 20, minWidth: '80%', marginTop: 10}}>
+                    <Picker selectedValue="Materia" onValueChange={() => {}}>
+                        <Picker.Item label="Español" value="op1" />
+                        <Picker.Item label="Ingles" value="op2" />
+                        <Picker.Item label="Sociales" value="op3" />
+                    </Picker>
+                </View>
+
+                <View style={{ borderWidth: 1, borderColor: colors.azulPrimario, borderRadius: 20, minWidth: '80%', marginTop: 10}}>
+                    <Picker selectedValue="Curso" onValueChange={() => {}}>
+                        <Picker.Item label="101" value="op1" />
+                        <Picker.Item label="202" value="op2" />
+                        <Picker.Item label="303" value="op3" />
+                    </Picker>
+                </View>
+
+                <View style={{ borderWidth: 1, borderColor: colors.azulPrimario, borderRadius: 20, minWidth: '80%', marginTop: 10, marginBottom: 20}}>
+                    <Picker selectedValue="Profesor" onValueChange={() => {}}>
+                        <Picker.Item label="juan" value="op1" />
+                        <Picker.Item label="pedro" value="op2" />
+                        <Picker.Item label="miguel" value="op3" />
+                    </Picker>
+                </View>
+                
+                    <TouchableOpacity style={styles.botonCrearUsuario}>
+                        <Text style={styles.textoCrearUsuario}> Guardar Aula</Text>
+                    </TouchableOpacity>
+            </View>
+
         <Footer />
 
         </ScrollView>
@@ -65,6 +99,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        paddingBottom: 10,
+        borderBottomWidth: 1,
+        borderColor: colors.azulPrimario
     },
     botonCrearUsuario: {
         flexDirection: 'row',
@@ -80,6 +117,23 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         color: '#007bbd',
+    },
+    formularioModificar:{
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 20,
+        minWidth: '90%',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    datosFormulario:{
+        borderWidth: 1,
+        borderColor: colors.azulPrimario,
+        borderRadius: 20,
+        paddingVertical: 10,
+        paddingLeft: 20,
+        minWidth: '80%',
+        marginTop: 10,
     }
 
 });

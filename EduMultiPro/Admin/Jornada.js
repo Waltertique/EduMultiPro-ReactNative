@@ -86,6 +86,22 @@ export default function Jornada({ navigation }) {
 
             </View>
 
+            <View style={styles.ContenedorModificar}>
+                <Text style={styles.titleUsuario}>Modificar Jornada</Text>
+                <TextInput style={styles.ModificarMateriaInput} placeholder='Nombre'></TextInput>
+                <TextInput style={styles.ModificarMateriaInput} placeholder='Descripcion'></TextInput>
+
+                <View style={styles.formularioModificarBotones}>
+                    <TouchableOpacity style={styles.botonCrearUsuario}>
+                        <Text style={styles.textoCrearUsuario}> Modificar</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.botonCrearUsuario}>
+                        <Text style={styles.textoCrearUsuario}> Cancelar</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+
             <View style={styles.contenedorTabla}>
                 
                 <View style={styles.container}>
@@ -319,6 +335,29 @@ const styles = StyleSheet.create({
         backgroundColor: colors.azulSecundario,
         color: 'white',
         borderColor: colors.azulPrimario,
+        marginTop: 15,
+    },
+// formulario modificar
+    ContenedorModificar:{
+        backgroundColor: 'white',
+        minWidth: '90%',
+        borderRadius: 20,
+        alignItems: 'center',
+        paddingVertical: 10,
+        marginTop: 20,
+    },
+    ModificarMateriaInput:{
+        borderWidth: 1,
+        minWidth: '70%',
+        borderColor: colors.azulPrimario,
+        borderRadius: 20,
+        paddingLeft: 20,
+        marginTop: 10,
+    },
+    formularioModificarBotones: {
+        flexDirection: 'row',
+        minWidth: '50%',
+        justifyContent: 'space-between',
         marginTop: 15,
     }
 });

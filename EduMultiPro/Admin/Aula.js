@@ -1,6 +1,8 @@
 import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
+import { Picker } from "@react-native-picker/picker"; //sirve para hacer los select
+
 import * as React from 'react';
 import { DataTable } from 'react-native-paper';
 
@@ -59,6 +61,29 @@ export default function Aula({ navigation }) {
                     <Text style={styles.textoCrearUsuario}> Crear</Text>
                 </TouchableOpacity>
 
+            </View>
+
+            <View style={styles.formularioModificar}>
+                <Text style={styles.titleUsuario}>Modificar Aula</Text>
+                <TextInput style={styles.datosFormulario} placeholder='Nombre' ></TextInput>
+
+                <View style={{ borderWidth: 1, borderColor: colors.azulPrimario, borderRadius: 20, minWidth: '80%', marginTop: 10, marginBottom: 20}}>
+                    <Picker selectedValue="Materia" onValueChange={() => {}}>
+                        <Picker.Item label="Ingles" value="op1" />
+                        <Picker.Item label="Español" value="op2" />
+                        <Picker.Item label="Fisica" value="op3" />
+                    </Picker>
+                </View>
+                
+                <View style={styles.formularioModificarBotones}>
+                    <TouchableOpacity style={styles.botonCrearUsuario}>
+                        <Text style={styles.textoCrearUsuario}> Modificar</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.botonCrearUsuario}>
+                        <Text style={styles.textoCrearUsuario}> Cancelar</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
 
             <View style={styles.contenedorTabla}>
@@ -256,5 +281,28 @@ const styles = StyleSheet.create({
         marginHorizontal: 2,
     },
     // Fin tabla
+
+    formularioModificar:{
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 20,
+        minWidth: '90%',
+        marginTop: 20,
+        alignItems: 'center',
+    },
+    datosFormulario:{
+        borderWidth: 1,
+        borderColor: colors.azulPrimario,
+        borderRadius: 20,
+        paddingVertical: 10,
+        paddingLeft: 20,
+        minWidth: '80%',
+        marginTop: 10,
+    },
+    formularioModificarBotones: {
+        flexDirection: 'row',
+        minWidth: '60%',
+        justifyContent: 'space-between',
+    }
 
 });
