@@ -1,4 +1,4 @@
-import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 
@@ -15,26 +15,118 @@ import colors from '../colors'; // 👈 archivo donde guardamos las variables
 export default function Curso({ navigation }) {
 
     const [page, setPage] = React.useState(0);
-    const itemsPerPage = 5;
+    const itemsPerPage = 10;
     const [search, setSearch] = React.useState('');
 
-    // Datos estáticos de ejemplo
-    const data = [
-        { id: '1', Curso: '101', Grado: 'Primero', Jornada: 'Mañana' },
-        { id: '2', Curso: '201', Grado: 'Segundo', Jornada: 'Mañana' },
-        { id: '3', Curso: '301', Grado: 'Tercero', Jornada: 'Tarde' },
-        { id: '4', Curso: '401', Grado: 'Cuarto', Jornada: 'Tarde' },
-        { id: '5', Curso: '501', Grado: 'Quinto', Jornada: 'Mixta' },
-        { id: '6', Curso: '601', Grado: 'Sexto', Jornada: 'Mixta' },
-    ];
+    const [cursos, setCursos] = React.useState([]);
+    const [grados, setGrados] = React.useState([]);
+    const [jornadas, setJornadas] = React.useState([]);
+    const [cursoSeleccionado, setCursoSeleccionado] = React.useState(null);
+    const [mostrarFormulario, setMostrarFormulario] = React.useState(false);
 
-    // Filtrado por búsqueda
-    const filteredData = data.filter(
+    // Obtener todos los cursos
+    const obtenerCursos = async () => {
+    try {
+        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Cursos");
+        const data = await res.json();
+        setCursos(data);
+    } catch (error) {
+        console.error("Error al obtener cursos:", error);
+    }
+    };
+
+    // Obtener todos los grados
+    const obtenerGrados = async () => {
+    try {
+        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Grados");
+        const data = await res.json();
+        setGrados(data);
+    } catch (error) {
+        console.error("Error al obtener grados:", error);
+    }
+    };
+
+    // Obtener todas las jornadas
+    const obtenerJornadas = async () => {
+    try {
+        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Jornadas");
+        const data = await res.json();
+        setJornadas(data);
+    } catch (error) {
+        console.error("Error al obtener jornadas:", error);
+    }
+    };
+
+    // Eliminar curso
+    const eliminarCurso = (id) => {
+        Alert.alert(
+            "Confirmar eliminación",
+            "¿Deseas eliminar este curso?",
+            [
+                { text: "Cancelar", style: "cancel" },
+                { text: "Eliminar", style: "destructive", onPress: async () => {
+                    try {
+                        const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Cursos/${id}`, {
+                            method: "DELETE",
+                        });
+                        const data = await res.json();
+                        Alert.alert("Éxito", data.mensaje);
+                        setCursos(cursos.filter((c) => c.ID !== id));
+                    } catch (error) {
+                        console.error("Error al eliminar curso:", error);
+                        Alert.alert("Error", "No se pudo eliminar el curso");
+                    }
+                }}
+            ]
+        );
+    };
+
+    // Función para modificar curso
+    const modificarCurso = async () => {
+        if (!cursoSeleccionado?.ID) {
+            Alert.alert("Error", "No hay curso seleccionado");
+            return;
+        }
+
+        // Validación simple
+        if (!cursoSeleccionado.grado_id || !cursoSeleccionado.jornada_id) {
+            Alert.alert("Error", "Debes seleccionar grado y jornada");
+            return;
+        }
+
+        try {
+            const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Cursos/${cursoSeleccionado.ID}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    grado_id: Number(cursoSeleccionado.grado_id),
+                    jornada_id: Number(cursoSeleccionado.jornada_id)
+                }),
+            });
+
+            const data = await res.json();
+            Alert.alert("Éxito", data.mensaje);
+
+            setMostrarFormulario(false);
+            obtenerCursos(); // Refresca la tabla
+        } catch (error) {
+            console.error("Error al modificar curso:", error);
+            Alert.alert("Error", "No se pudo actualizar el curso");
+        }
+    };
+
+    React.useEffect(() => {
+    obtenerCursos();
+    obtenerGrados();
+    obtenerJornadas();
+    }, []);
+
+    // Filtrado de cursos según la búsqueda
+    const filteredData = cursos.filter(
         (item) =>
-        item.id.includes(search) ||
-        item.Curso.toLowerCase().includes(search.toLowerCase()) ||
-        item.Grado.toLowerCase().includes(search.toLowerCase()) ||
-        item.Jornada.toLowerCase().includes(search.toLowerCase())
+            item.Curso_Nombre?.toLowerCase().includes(search.toLowerCase()) ||
+            item.Grado_Nombre?.toLowerCase().includes(search.toLowerCase()) ||
+            item.Jornada_Nombre?.toLowerCase().includes(search.toLowerCase())
     );
 
     // Paginación
@@ -85,36 +177,59 @@ export default function Curso({ navigation }) {
                 </TouchableOpacity>
             </View>
 
+            {/*Formulario de modificar curso*/}
+            {mostrarFormulario && cursoSeleccionado && (
             <View style={styles.formularioModificar}>
                 <Text style={styles.titleUsuario}>Modificar Curso</Text>
-                <TextInput style={styles.datosFormulario} placeholder='Nombre' ></TextInput>
 
-                <View style={{ borderWidth: 1, borderColor: colors.azulPrimario, borderRadius: 20, minWidth: '80%', marginTop: 10}}>
-                    <Picker selectedValue="Grado" onValueChange={() => {}}>
-                        <Picker.Item label="Primero" value="op1" />
-                        <Picker.Item label="Segundo" value="op2" />
-                        <Picker.Item label="Tercero" value="op3" />
+                {/* Picker de grado */}
+                <View style={{ borderWidth: 1, borderColor: colors.azulPrimario, borderRadius: 20, minWidth: '80%', marginTop: 10 }}>
+                    <Picker
+                        selectedValue={cursoSeleccionado.grado_id}
+                        onValueChange={(value) =>
+                            setCursoSeleccionado({ ...cursoSeleccionado, grado_id: value ? parseInt(value) : null })
+                        }
+                    >
+                        <Picker.Item label="Seleccione grado" value={null} />
+                        {grados.map((g) => (
+                            <Picker.Item key={g.ID} label={g.Grado_Nombre} value={g.ID} />
+                        ))}
                     </Picker>
                 </View>
 
-                <View style={{ borderWidth: 1, borderColor: colors.azulPrimario, borderRadius: 20, minWidth: '80%', marginTop: 10, marginBottom: 20}}>
-                    <Picker selectedValue="Jornada" onValueChange={() => {}}>
-                        <Picker.Item label="Mañana" value="op1" />
-                        <Picker.Item label="Tarder" value="op2" />
-                        <Picker.Item label="Mixta" value="op3" />
+                {/* Picker de jornada */}
+                <View style={{ borderWidth: 1, borderColor: colors.azulPrimario, borderRadius: 20, minWidth: '80%', marginTop: 10, marginBottom: 20 }}>
+                    <Picker
+                        selectedValue={cursoSeleccionado.jornada_id}
+                        onValueChange={(value) =>
+                            setCursoSeleccionado({ ...cursoSeleccionado, jornada_id: value ? parseInt(value) : null })
+                        }
+                    >
+                        <Picker.Item label="Seleccione jornada" value={null} />
+                        {jornadas.map((j) => (
+                            <Picker.Item key={j.ID} label={j.Jornada_Nombre} value={j.ID} />
+                        ))}
                     </Picker>
                 </View>
-                
+
+                {/* Botones */}
                 <View style={styles.formularioModificarBotones}>
-                    <TouchableOpacity style={styles.botonCrearUsuario}>
-                        <Text style={styles.textoCrearUsuario}> Modificar</Text>
-                    </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.botonCrearUsuario}
+                    onPress={modificarCurso} // Guarda cambios
+                >
+                    <Text style={styles.textoCrearUsuario}>Modificar</Text>
+                </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.botonCrearUsuario}>
-                        <Text style={styles.textoCrearUsuario}> Cancelar</Text>
-                    </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.botonCrearUsuario}
+                    onPress={() => setMostrarFormulario(false)} // Cancela
+                >
+                    <Text style={styles.textoCrearUsuario}>Cancelar</Text>
+                </TouchableOpacity>
                 </View>
             </View>
+            )}
 
             <View style={styles.contenedorTabla}>
                 
@@ -150,25 +265,36 @@ export default function Curso({ navigation }) {
 
                         {filteredData.slice(from, to).map((curso, index) => (
                         <DataTable.Row key={index}>
-                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{curso.id}</Text></DataTable.Cell>
-                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{curso.Curso}</Text></DataTable.Cell>
-                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{curso.Grado}</Text></DataTable.Cell>
-                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{curso.Jornada}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{curso.ID}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{curso.Curso_Nombre}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{curso.Grado_Nombre}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{curso.Jornada_Nombre}</Text></DataTable.Cell>
 
                             <DataTable.Cell style={styles.tablaBody}>
-                                <TouchableOpacity style={styles.botonAccion} onPress={() => navigation.navigate('VerCurso')}>
+                                <TouchableOpacity style={styles.botonAccion} onPress={() => navigation.navigate('VerCurso', { id: curso.ID })}>
                                     <FontAwesome name="info" size={16} color="#fff" />
                                 </TouchableOpacity>
                             </DataTable.Cell>
                             
                             <DataTable.Cell style={styles.tablaBody}>
-                                <TouchableOpacity style={styles.botonModificar}>
+                                <TouchableOpacity
+                                    style={styles.botonModificar}
+                                    onPress={() => {
+                                        setCursoSeleccionado({
+                                            ID: curso.ID,
+                                            Curso_Nombre: curso.Curso_Nombre,
+                                            grado_id: grados.find(g => g.Grado_Nombre === curso.Grado_Nombre)?.ID || null,
+                                            jornada_id: jornadas.find(j => j.Jornada_Nombre === curso.Jornada_Nombre)?.ID || null,
+                                        });
+                                        setMostrarFormulario(true);
+                                    }}
+                                >
                                     <FontAwesome name="edit" size={16} color="#fff" />
                                 </TouchableOpacity>
                             </DataTable.Cell>
 
                             <DataTable.Cell style={styles.tablaBody}>
-                                <TouchableOpacity style={styles.botonEliminar}>
+                                <TouchableOpacity style={styles.botonEliminar} onPress={() => eliminarCurso(curso.ID)}>
                                     <FontAwesome name="trash" size={16} color="#fff" />
                                 </TouchableOpacity>
                             </DataTable.Cell>

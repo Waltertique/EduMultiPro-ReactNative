@@ -1,41 +1,108 @@
-import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-
 import * as React from 'react';
 import { DataTable } from 'react-native-paper';
 
 import Encabezado from '../Encabezado';
 import Footer from '../footer';
 import Desplegable from '../Desplegable';
-import colors from '../colors'; // 👈 archivo donde guardamos las variables
+import colors from '../colors';
 
-export default function VerCurso({ navigation }) {
+export default function VerCurso({ navigation, route }) {
+
+    const { id } = route.params; // 👈 ID del curso recibido como parámetro de navegación
 
     const [page, setPage] = React.useState(0);
     const itemsPerPage = 5;
     const [search, setSearch] = React.useState('');
+    const [integrantes, setIntegrantes] = React.useState([]);
+    const [usuarioID, setUsuarioID] = React.useState('');
 
-    // Datos estáticos de ejemplo
-    const data = [
-        { id: '1', pNombre: 'Juan', sNombre: 'Carlos', pApellido: 'Pérez', sApellido: 'Gómez' },
-        { id: '2', pNombre: 'María', sNombre: 'Luisa', pApellido: 'Rodríguez', sApellido: 'Díaz' },
-        { id: '3', pNombre: 'Pedro', sNombre: 'José', pApellido: 'Martínez', sApellido: 'Torres' },
-        { id: '4', pNombre: 'Ana', sNombre: 'Isabel', pApellido: 'Ramírez', sApellido: 'Mora' },
-        { id: '5', pNombre: 'Sofía', sNombre: 'Alejandra', pApellido: 'García', sApellido: 'López' },
-        { id: '6', pNombre: 'Luis', sNombre: 'Miguel', pApellido: 'Fernández', sApellido: 'Castro' },
-    ];
+    // ✅ Cargar integrantes desde la API
+    const cargarIntegrantes = async () => {
+        try {
+        const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Cursos/${id}/integrantes`);
+        const data = await res.json();
+        setIntegrantes(data);
+        } catch (error) {
+        console.error('Error al cargar integrantes:', error);
+        Alert.alert('❌ Error', 'No se pudieron cargar los integrantes');
+        }
+    };
 
-    // Filtrado por búsqueda
-    const filteredData = data.filter(
+    React.useEffect(() => {
+        cargarIntegrantes();
+    }, []);
+
+    // ✅ Agregar integrante
+    const agregarIntegrante = async () => {
+        if (!usuarioID.trim()) {
+        Alert.alert('⚠️ Atención', 'Por favor escribe un ID válido.');
+        return;
+        }
+
+        try {
+        const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Cursos/${id}/integrantes`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario_id: usuarioID }),
+        });
+
+        const data = await res.json();
+        Alert.alert('ℹ️ Info', data.mensaje);
+
+        if (res.ok) {
+            setUsuarioID('');
+            cargarIntegrantes();
+        }
+        } catch (error) {
+        console.error('Error al agregar integrante:', error);
+        Alert.alert('❌ Error', 'Hubo un error al agregar integrante');
+        }
+    };
+
+    // ✅ Eliminar integrante
+    const eliminarIntegrante = async (usuarioId) => {
+        Alert.alert(
+        'Confirmación',
+        '¿Estás seguro de eliminar este integrante?',
+        [
+            { text: 'Cancelar', style: 'cancel' },
+            {
+            text: 'Eliminar',
+            style: 'destructive',
+            onPress: async () => {
+                try {
+                const res = await fetch(
+                    `http://192.168.0.3:3000/api/edumultipro/Cursos/${id}/integrantes/${usuarioId}`,
+                    { method: 'DELETE' }
+                );
+
+                const data = await res.json();
+                Alert.alert('ℹ️ Info', data.mensaje);
+
+                if (res.ok) cargarIntegrantes();
+                } catch (error) {
+                console.error('Error al eliminar integrante:', error);
+                Alert.alert('❌ Error', 'Hubo un error al eliminar integrante');
+                }
+            },
+            },
+        ]
+        );
+    };
+
+    // 🔍 Filtrado por búsqueda
+    const filteredData = integrantes.filter(
         (item) =>
-        item.id.includes(search) ||
-        item.pNombre.toLowerCase().includes(search.toLowerCase()) ||
-        item.sNombre.toLowerCase().includes(search.toLowerCase()) ||
-        item.pApellido.toLowerCase().includes(search.toLowerCase()) ||
-        item.sApellido.toLowerCase().includes(search.toLowerCase())
+        item.ID.toString().includes(search) ||
+        item.Primer_Nombre?.toLowerCase().includes(search.toLowerCase()) ||
+        item.Segundo_Nombre?.toLowerCase().includes(search.toLowerCase()) ||
+        item.Primer_Apellido?.toLowerCase().includes(search.toLowerCase()) ||
+        item.Segundo_Apellido?.toLowerCase().includes(search.toLowerCase())
     );
 
-    // Paginación
+    // 📄 Paginación
     const from = page * itemsPerPage;
     const to = Math.min((page + 1) * itemsPerPage, filteredData.length);
 
@@ -63,11 +130,16 @@ export default function VerCurso({ navigation }) {
 
                 <View style={styles.ContenedorAnadir}>
                     <Text style={styles.titleUsuario}>Agregar  Usuario</Text>
-                    <TextInput style={styles.ModificarMateriaInput} placeholder='ID Usuario'></TextInput>
+                    <TextInput
+                        style={styles.ModificarMateriaInput}
+                        placeholder="ID Usuario"
+                        value={usuarioID}
+                        onChangeText={setUsuarioID}
+                    />
 
-                        <TouchableOpacity style={styles.botonAgregar}>
-                            <Text style={styles.textoCrearUsuario}> Agregar</Text>
-                        </TouchableOpacity>
+                    <TouchableOpacity style={styles.botonAgregar} onPress={agregarIntegrante}>
+                        <Text style={styles.textoCrearUsuario}> Agregar</Text>
+                    </TouchableOpacity>
                 </View>
 
                 <View style={styles.contenedorTabla}>
@@ -104,14 +176,17 @@ export default function VerCurso({ navigation }) {
                             {filteredData.slice(from, to).map((usuario, index) => (
                                 <DataTable.Row key={index}>
 
-                                    <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.id}</Text></DataTable.Cell>
-                                    <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.pNombre}</Text></DataTable.Cell>
-                                    <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.sNombre}</Text></DataTable.Cell>
-                                    <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.pApellido}</Text></DataTable.Cell>
-                                    <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.sApellido}</Text></DataTable.Cell>
+                                    <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.ID}</Text></DataTable.Cell>
+                                    <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.Primer_Nombre}</Text></DataTable.Cell>
+                                    <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.Segundo_Nombre}</Text></DataTable.Cell>
+                                    <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.Primer_Apellido}</Text></DataTable.Cell>
+                                    <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.Segundo_Apellido}</Text></DataTable.Cell>
 
                                     <DataTable.Cell style={styles.tablaBody}>
-                                        <TouchableOpacity style={styles.botonEliminar}>
+                                        <TouchableOpacity
+                                            style={styles.botonEliminar}
+                                            onPress={() => eliminarIntegrante(usuario.ID)}
+                                            >
                                             <FontAwesome name="trash" size={16} color="#fff" />
                                         </TouchableOpacity>
                                     </DataTable.Cell>

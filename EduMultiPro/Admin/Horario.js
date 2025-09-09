@@ -1,43 +1,79 @@
-import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-
 import * as React from 'react';
 import { DataTable } from 'react-native-paper';
 
 import Encabezado from '../Encabezado';
 import Footer from '../footer';
 import Desplegable from '../Desplegable';
-import colors from '../colors'; // 👈 archivo donde guardamos las variables
+import colors from '../colors';
 
 export default function Horario({ navigation }) {
 
+    const [horarios, setHorarios] = React.useState([]);
     const [page, setPage] = React.useState(0);
-    const itemsPerPage = 5;
+    const itemsPerPage = 10; // 👈 ahora de 10 en 10
     const [search, setSearch] = React.useState('');
 
-    // Datos estáticos de ejemplo
-    const data = [
-        { id: '1', Horario: 'Horario Primero', Curso: '101', Jornada: 'Mañana', Profesor: 'Juan Gómez' },
-        { id: '2', Horario: 'Horario Segundo', Curso: '201', Jornada: 'Mañana', Profesor: 'Juan Díaz' },
-        { id: '3', Horario: 'Horario Tercero', Curso: '301', Jornada: 'Tarde', Profesor: 'Juan Torres' },
-        { id: '4', Horario: 'Horario Cuarto', Curso: '401', Jornada: 'Tarde', Profesor: 'Juan Mora' },
-        { id: '5', Horario: 'Horario Quinto', Curso: '501', Jornada: 'Mixta', Profesor: 'Juan López' },
-        { id: '6', Horario: 'Horario Sexto', Curso: '601', Jornada: 'Mixta', Profesor: 'Juan Castro' },
-    ];
+    // 🔹 Obtener horarios del backend
+    const obtenerHorarios = async () => {
+        try {
+        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Horarios"); 
+        const data = await res.json();
+        setHorarios(data);
+        } catch (err) {
+        console.error("❌ Error al obtener horarios:", err);
+        Alert.alert("Error", "No se pudieron cargar los horarios");
+        }
+    };
 
-    // Filtrado por búsqueda
-    const filteredData = data.filter(
+    // 🔹 Eliminar horario
+    const eliminarHorario = async (id) => {
+        Alert.alert(
+        "Confirmar",
+        "¿Seguro que quieres eliminar este horario?",
+        [
+            { text: "Cancelar", style: "cancel" },
+            { 
+            text: "Eliminar", 
+            style: "destructive",
+            onPress: async () => {
+                try {
+                const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Horarios/${id}`, {
+                    method: "DELETE",
+                });
+                const data = await res.json();
+                Alert.alert("Info", data.mensaje);
+
+                // Actualizar lista en memoria
+                setHorarios((prev) => prev.filter((h) => h.ID !== id));
+                } catch (error) {
+                console.error("❌ Error al eliminar horario:", error);
+                Alert.alert("Error", "No se pudo eliminar el horario");
+                }
+            }
+            }
+        ]
+        );
+    };
+
+    // 🔹 Filtrado por búsqueda
+    const filteredData = horarios.filter(
         (item) =>
-        item.id.includes(search) ||
-        item.Horario.toLowerCase().includes(search.toLowerCase()) ||
-        item.Curso.toLowerCase().includes(search.toLowerCase()) ||
-        item.Jornada.toLowerCase().includes(search.toLowerCase()) ||
-        item.Profesor.toLowerCase().includes(search.toLowerCase())
+        item.ID.toString().includes(search) ||
+        item.Titulo_Horario?.toLowerCase().includes(search.toLowerCase()) ||
+        item.Curso_Nombre?.toLowerCase().includes(search.toLowerCase()) ||
+        item.Jornada_Nombre?.toLowerCase().includes(search.toLowerCase()) ||
+        item.Profesor_Nombre?.toLowerCase().includes(search.toLowerCase())
     );
 
-    // Paginación
+    // 🔹 Paginación
     const from = page * itemsPerPage;
     const to = Math.min((page + 1) * itemsPerPage, filteredData.length);
+
+    React.useEffect(() => {
+        obtenerHorarios();
+    }, []);
 
   return (
     <View style={styles.contenedor}>
@@ -94,13 +130,13 @@ export default function Horario({ navigation }) {
                             <DataTable.Title style={styles.tablaHead}>Eliminar</DataTable.Title>
                         </DataTable.Header>
                     
-                        {filteredData.slice(from, to).map((Horario, index) => (
+                        {filteredData.slice(from, to).map((horario, index) => (
                             <DataTable.Row key={index}>
-                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{Horario.id}</Text></DataTable.Cell>
-                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{Horario.Horario}</Text></DataTable.Cell>
-                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{Horario.Curso}</Text></DataTable.Cell>
-                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{Horario.Jornada}</Text></DataTable.Cell>
-                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{Horario.Profesor}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{horario.ID}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{horario.Titulo_Horario}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{horario.Curso_Nombre || "Sin Asignar"}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{horario.Jornada_Nombre || "Sin Asignar"}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{horario.Profesor_Nombre || "Sin Asignar"}</Text></DataTable.Cell>
 
                             <DataTable.Cell style={styles.tablaBody}>
                                 <TouchableOpacity style={styles.botonAccion} onPress={() => navigation.navigate('VerHorario')}>
@@ -115,7 +151,7 @@ export default function Horario({ navigation }) {
                             </DataTable.Cell>
 
                             <DataTable.Cell style={styles.tablaBody}>
-                                <TouchableOpacity style={styles.botonEliminar}>
+                                <TouchableOpacity style={styles.botonEliminar} onPress={() => eliminarHorario(horario.ID)}>
                                     <FontAwesome name="trash" size={16} color="#fff" />
                                 </TouchableOpacity>
                             </DataTable.Cell>

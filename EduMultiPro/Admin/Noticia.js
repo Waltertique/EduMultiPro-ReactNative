@@ -1,41 +1,78 @@
-import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-
 import * as React from 'react';
 import { DataTable } from 'react-native-paper';
 
 import Encabezado from '../Encabezado';
 import Footer from '../footer';
 import Desplegable from '../Desplegable';
-import colors from '../colors'; // 👈 archivo donde guardamos las variables
+import colors from '../colors';
 
 export default function Noticia({ navigation }) {
 
+    const [noticias, setNoticias] = React.useState([]);
     const [page, setPage] = React.useState(0);
-    const itemsPerPage = 5;
+    const itemsPerPage = 10; // 👉 ahora de 10 en 10
     const [search, setSearch] = React.useState('');
 
-    // Datos estáticos de ejemplo
-    const data = [
-        { id: '1', Titulo: 'Lanzamiento de EduMultiPro', Tipo: 'Noticia Principal 1'},
-        { id: '2', Titulo: 'Nueva actualización de Mercaplus', Tipo: 'Noticia Principal 1'},
-        { id: '3', Titulo: 'Conferencia sobre tecnología educativa', Tipo: 'Noticia Principal 1'},
-        { id: '4', Titulo: 'Taller de desarrollo de software', Tipo: 'Noticia Principal 1'},
-        { id: '5', Titulo: 'Importancia del reciclaje en las instituciones', Tipo: 'Noticia Principal 1'},
-        { id: '6', Titulo: 'Eventos académicos en 2025', Tipo: 'Noticia Principal 1'},
-    ];
+    // 🔹 Obtener Noticias desde el backend
+    const obtenerNoticias = async () => {
+        try {
+        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Noticias"); 
+        // 👉 en físico cambia 10.0.2.2 por la IP local de tu PC
+        const data = await res.json();
+        setNoticias(data);
+        } catch (err) {
+        console.error("❌ Error al obtener noticias:", err);
+        Alert.alert("Error", "No se pudieron cargar las noticias");
+        }
+    };
 
-    // Filtrado por búsqueda
-    const filteredData = data.filter(
+    // 🔹 Eliminar noticia
+    const eliminarNoticia = async (id) => {
+        Alert.alert(
+        "Confirmar",
+        "¿Seguro que quieres eliminar esta noticia?",
+        [
+            { text: "Cancelar", style: "cancel" },
+            {
+            text: "Eliminar",
+            style: "destructive",
+            onPress: async () => {
+                try {
+                const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Noticias/${id}`, {
+                    method: "DELETE",
+                });
+                const data = await res.json();
+                Alert.alert("Info", data.mensaje);
+
+                // Actualizar lista local
+                setNoticias((prev) => prev.filter((n) => n.ID !== id));
+                } catch (error) {
+                console.error("❌ Error al eliminar noticia:", error);
+                Alert.alert("Error", "No se pudo eliminar la noticia");
+                }
+            }
+            }
+        ]
+        );
+    };
+
+    // 🔹 Filtrado de búsqueda
+    const filteredData = noticias.filter(
         (item) =>
-        item.id.includes(search) ||
-        item.Titulo.toLowerCase().includes(search.toLowerCase()) ||
-        item.Tipo.toLowerCase().includes(search.toLowerCase())
+        item.ID.toString().includes(search) ||
+        item.Titulo_Noticia?.toLowerCase().includes(search.toLowerCase()) ||
+        item.Tipo?.toLowerCase().includes(search.toLowerCase())
     );
 
-    // Paginación
+    // 🔹 Paginación
     const from = page * itemsPerPage;
     const to = Math.min((page + 1) * itemsPerPage, filteredData.length);
+
+    React.useEffect(() => {
+        obtenerNoticias();
+    }, []);
 
   return (
     <View style={styles.contenedor}>
@@ -90,11 +127,11 @@ export default function Noticia({ navigation }) {
                             <DataTable.Title style={styles.tablaHead}>Eliminar</DataTable.Title>
                         </DataTable.Header>
                     
-                        {filteredData.slice(from, to).map((Noticia, index) => (
+                        {filteredData.slice(from, to).map((noticia, index) => (
                             <DataTable.Row key={index}>
-                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{Noticia.id}</Text></DataTable.Cell>
-                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{Noticia.Titulo}</Text></DataTable.Cell>
-                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{Noticia.Tipo}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{noticia.ID}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{noticia.Titulo_Noticia}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{noticia.Tipo}</Text></DataTable.Cell>
 
                             <DataTable.Cell style={styles.tablaBody}>
                                 <TouchableOpacity style={styles.botonAccion} onPress={() => navigation.navigate('VerNoticia')}>
@@ -109,7 +146,7 @@ export default function Noticia({ navigation }) {
                             </DataTable.Cell>
 
                             <DataTable.Cell style={styles.tablaBody}>
-                                <TouchableOpacity style={styles.botonEliminar}>
+                                <TouchableOpacity style={styles.botonEliminar} onPress={() => eliminarNoticia(noticia.ID)}>
                                     <FontAwesome name="trash" size={16} color="#fff" />
                                 </TouchableOpacity>
                             </DataTable.Cell>

@@ -1,39 +1,123 @@
-import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-
 import * as React from 'react';
 import { DataTable } from 'react-native-paper';
 
 import Encabezado from '../Encabezado';
 import Footer from '../footer';
 import Desplegable from '../Desplegable';
-import colors from '../colors'; // 👈 archivo donde guardamos las variables
+import colors from '../colors';
 
 export default function Grado({ navigation }) {
 
     const [page, setPage] = React.useState(0);
-    const itemsPerPage = 5;
+    const itemsPerPage = 10;
     const [search, setSearch] = React.useState('');
+    const [grados, setGrados] = React.useState([]);
 
-    // Datos estáticos de ejGrado
-    const data = [
-        { id: '1', Grado: 'Primero', Descripcion: 'Estudia los números, las operaciones y las estructuras matemáticas básicas.' },
-        { id: '2', Grado: 'Segundo', Descripcion: 'Desarrolla habilidades en comprensión lectora, ortografía, gramática y redacción.' },
-        { id: '3', Grado: 'Tercero', Descripcion: 'Explora conceptos fundamentales de la biología, química y física.' },
-        { id: '4', Grado: 'Cuarto', Descripcion: 'Desarrolla la comprensión y comunicación en el idioma inglés.' },
-        { id: '6', Grado: 'Quinto', Descripcion: 'Fomenta la actividad física, el deporte y los hábitos de vida saludable.' },
-    ];
+    // Estados para crear grado
+    const [nuevoGrado, setNuevoGrado] = React.useState({ nombre: '', descripcion: '' });
 
-    // Filtrado por búsqueda
-    const filteredData = data.filter(
+    // Estados para modificar grado
+    const [gradoSeleccionado, setGradoSeleccionado] = React.useState(null);
+
+    // ✅ Obtener grados desde la API
+    const obtenerGrados = async () => {
+        try {
+        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Grados");
+        const data = await res.json();
+        setGrados(data);
+        } catch (error) {
+        console.error("Error al obtener grados:", error);
+        }
+    };
+
+    React.useEffect(() => {
+        obtenerGrados();
+    }, []);
+
+    // ✅ Crear nuevo grado
+    const crearGrado = async () => {
+        if (!nuevoGrado.nombre || !nuevoGrado.descripcion) {
+        Alert.alert("Error", "Todos los campos son obligatorios");
+        return;
+        }
+
+        try {
+        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Grados", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+            Grado_Nombre: nuevoGrado.nombre,
+            Descripcion_Grado: nuevoGrado.descripcion,
+            }),
+        });
+
+        const data = await res.json();
+        Alert.alert("✅", data.mensaje);
+        setNuevoGrado({ nombre: "", descripcion: "" });
+        obtenerGrados();
+        } catch (error) {
+        console.error("Error al crear grado:", error);
+        }
+    };
+
+    // ✅ Modificar grado
+    const modificarGrado = async () => {
+        if (!gradoSeleccionado) return;
+
+        try {
+        const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Grados/${gradoSeleccionado.ID}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+            Grado_Nombre: gradoSeleccionado.Grado_Nombre,
+            Descripcion_Grado: gradoSeleccionado.Descripcion_Grado,
+            }),
+        });
+
+        const data = await res.json();
+        Alert.alert("✅", data.mensaje);
+        setGradoSeleccionado(null);
+        obtenerGrados();
+        } catch (error) {
+        console.error("Error al modificar grado:", error);
+        }
+    };
+
+    // ✅ Eliminar grado
+    const eliminarGrado = async (id) => {
+        Alert.alert("Confirmar", "¿Eliminar este grado?", [
+        { text: "Cancelar" },
+        {
+            text: "Eliminar",
+            onPress: async () => {
+            try {
+                const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Grados/${id}`, {
+                method: "DELETE",
+                });
+
+                const data = await res.json();
+                Alert.alert("✅", data.mensaje);
+                obtenerGrados();
+            } catch (error) {
+                console.error("Error al eliminar grado:", error);
+            }
+            },
+        },
+        ]);
+    };
+
+    // ✅ Filtrado
+    const filteredData = grados.filter(
         (item) =>
-        item.id.includes(search) ||
-        item.Grado.toLowerCase().includes(search.toLowerCase()) ||
-        item.Descripcion.toLowerCase().includes(search.toLowerCase())
+        item.ID.toString().includes(search) ||
+        item.Grado_Nombre.toLowerCase().includes(search.toLowerCase()) ||
+        item.Descripcion_Grado.toLowerCase().includes(search.toLowerCase())
     );
 
-    // Paginación
+    // ✅ Paginación
     const from = page * itemsPerPage;
     const to = Math.min((page + 1) * itemsPerPage, filteredData.length);
 
@@ -77,30 +161,58 @@ export default function Grado({ navigation }) {
             </View>
 
             <View style={styles.ContenedorCrear}>
-                <TextInput style={styles.CrearMateriaInput} placeholder='Nombre'></TextInput>
-                <TextInput style={styles.CrearMateriaInput} placeholder='Descripcion'></TextInput>
+                
+                <TextInput
+                    style={styles.CrearMateriaInput}
+                    placeholder='Nombre'
+                    value={nuevoGrado.nombre}
+                    onChangeText={(text) => setNuevoGrado((prev) => ({ ...prev, nombre: text }))}
+                />
 
-                <TouchableOpacity style={styles.botonCrear}>
+                <TextInput
+                    style={styles.CrearMateriaInput}
+                    placeholder='Descripcion'
+                    value={nuevoGrado.descripcion}
+                    onChangeText={(text) => setNuevoGrado((prev) => ({ ...prev, descripcion: text }))}
+                />
+
+                <TouchableOpacity style={styles.botonCrear} onPress={crearGrado}>
                     <Text style={styles.textoBotonPlataforma}> Crear Grado</Text>
                 </TouchableOpacity>
 
             </View>
+            
+            {gradoSeleccionado && (
+                <View style={styles.ContenedorModificar}>
+                    <Text style={styles.titleUsuario}>Modificar Grado</Text>
+                    <TextInput
+                        style={styles.ModificarMateriaInput}
+                        placeholder='Nombre'
+                        value={gradoSeleccionado.Grado_Nombre}
+                        onChangeText={(text) =>
+                        setGradoSeleccionado((prev) => ({ ...prev, Grado_Nombre: text }))
+                        }
+                    />
+                    <TextInput
+                        style={styles.ModificarMateriaInput}
+                        placeholder='Descripcion'
+                        value={gradoSeleccionado.Descripcion_Grado}
+                        onChangeText={(text) =>
+                        setGradoSeleccionado((prev) => ({ ...prev, Descripcion_Grado: text }))
+                        }
+                    />
 
-            <View style={styles.ContenedorModificar}>
-                <Text style={styles.titleUsuario}>Modificar Grado</Text>
-                <TextInput style={styles.ModificarMateriaInput} placeholder='Nombre'></TextInput>
-                <TextInput style={styles.ModificarMateriaInput} placeholder='Descripcion'></TextInput>
+                    <View style={styles.formularioModificarBotones}>
+                        <TouchableOpacity style={styles.botonCrearUsuario} onPress={modificarGrado}>
+                            <Text style={styles.textoCrearUsuario}> Modificar</Text>
+                        </TouchableOpacity>
 
-                <View style={styles.formularioModificarBotones}>
-                    <TouchableOpacity style={styles.botonCrearUsuario}>
-                        <Text style={styles.textoCrearUsuario}> Modificar</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.botonCrearUsuario}>
-                        <Text style={styles.textoCrearUsuario}> Cancelar</Text>
-                    </TouchableOpacity>
+                        <TouchableOpacity style={styles.botonCrearUsuario} onPress={() => setGradoSeleccionado(null)}>
+                            <Text style={styles.textoCrearUsuario}> Cancelar</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-            </View>
+            )}
 
             <View style={styles.contenedorTabla}>
                 
@@ -134,18 +246,24 @@ export default function Grado({ navigation }) {
 
                         {filteredData.slice(from, to).map((grado, index) => (
                         <DataTable.Row key={index}>
-                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{grado.id}</Text></DataTable.Cell>
-                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{grado.Grado}</Text></DataTable.Cell>
-                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{grado.Descripcion}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{grado.ID}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{grado.Grado_Nombre}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{grado.Descripcion_Grado}</Text></DataTable.Cell>
                             
                             <DataTable.Cell style={styles.tablaBody}>
-                                <TouchableOpacity style={styles.botonModificar}>
+                                <TouchableOpacity
+                                    style={styles.botonModificar}
+                                    onPress={() => setGradoSeleccionado(grado)}
+                                    >
                                     <FontAwesome name="edit" size={16} color="#fff" />
                                 </TouchableOpacity>
                             </DataTable.Cell>
 
                             <DataTable.Cell style={styles.tablaBody}>
-                                <TouchableOpacity style={styles.botonEliminar}>
+                                <TouchableOpacity
+                                    style={styles.botonEliminar}
+                                    onPress={() => eliminarGrado(grado.ID)}
+                                    >
                                     <FontAwesome name="trash" size={16} color="#fff" />
                                 </TouchableOpacity>
                             </DataTable.Cell>

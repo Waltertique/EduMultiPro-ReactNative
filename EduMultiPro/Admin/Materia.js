@@ -1,37 +1,112 @@
-import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-
 import * as React from 'react';
 import { DataTable } from 'react-native-paper';
 
 import Encabezado from '../Encabezado';
 import Footer from '../footer';
 import Desplegable from '../Desplegable';
-import colors from '../colors'; // 👈 archivo donde guardamos las variables
+import colors from '../colors';
 
 export default function Materia({ navigation }) {
 
     const [page, setPage] = React.useState(0);
-    const itemsPerPage = 5;
+    const itemsPerPage = 10;
     const [search, setSearch] = React.useState('');
+    const [materias, setMaterias] = React.useState([]);
 
-    // Datos estáticos de ejemplo
-    const data = [
-        { id: '1', Materia: 'Español', Descripcion: 'Estudia los números, las operaciones y las estructuras matemáticas básicas.' },
-        { id: '2', Materia: 'Matematicas', Descripcion: 'Desarrolla habilidades en comprensión lectora, ortografía, gramática y redacción.' },
-        { id: '3', Materia: 'Ingles', Descripcion: 'Explora conceptos fundamentales de la biología, química y física.' },
-        { id: '4', Materia: 'sociales', Descripcion: 'Analiza la historia, la geografía y la formación ciudadana.' },
-        { id: '5', Materia: 'fisica', Descripcion: 'Desarrolla la comprensión y comunicación en el idioma inglés.' },
-        { id: '6', Materia: 'quimica', Descripcion: 'Fomenta la actividad física, el deporte y los hábitos de vida saludable.' },
-    ];
+    // Formularios
+    const [nuevaMateria, setNuevaMateria] = React.useState({ nombre: '', descripcion: '' });
+    const [materiaSeleccionada, setMateriaSeleccionada] = React.useState(null);
 
-    // Filtrado por búsqueda
-    const filteredData = data.filter(
+    // Obtener materias desde la API
+    const obtenerMaterias = async () => {
+        try {
+        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Materias");
+        const data = await res.json();
+        setMaterias(data);
+        } catch (err) {
+        Alert.alert("Error", "No se pudieron cargar las materias");
+        console.error(err);
+        }
+    };
+
+    React.useEffect(() => {
+        obtenerMaterias();
+    }, []);
+
+    // Crear materia
+    const crearMateria = async () => {
+        try {
+        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Materias", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+            Materia_Nombre: nuevaMateria.nombre,
+            Descripcion_Materia: nuevaMateria.descripcion,
+            }),
+        });
+        const data = await res.json();
+        Alert.alert("Aviso", data.mensaje);
+        setNuevaMateria({ nombre: '', descripcion: '' });
+        obtenerMaterias();
+        } catch (err) {
+        Alert.alert("Error", "No se pudo crear la materia");
+        console.error(err);
+        }
+    };
+
+    // Modificar materia
+    const modificarMateria = async () => {
+        try {
+        const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Materias/${materiaSeleccionada.ID}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+            Materia_Nombre: materiaSeleccionada.Materia_Nombre,
+            Descripcion_Materia: materiaSeleccionada.Descripcion_Materia,
+            }),
+        });
+        const data = await res.json();
+        Alert.alert("Aviso", data.mensaje);
+        setMateriaSeleccionada(null);
+        obtenerMaterias();
+        } catch (err) {
+        Alert.alert("Error", "No se pudo modificar la materia");
+        console.error(err);
+        }
+    };
+
+    // Eliminar materia
+    const eliminarMateria = async (id) => {
+        Alert.alert("Confirmar", "¿Deseas eliminar esta materia?", [
+        { text: "Cancelar", style: "cancel" },
+        {
+            text: "Eliminar",
+            onPress: async () => {
+            try {
+                const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Materias/${id}`, {
+                method: "DELETE",
+                });
+                const data = await res.json();
+                Alert.alert("Aviso", data.mensaje);
+                obtenerMaterias();
+            } catch (err) {
+                Alert.alert("Error", "No se pudo eliminar la materia");
+                console.error(err);
+            }
+            },
+        },
+        ]);
+    };
+
+    // Filtrado
+    const filteredData = materias.filter(
         (item) =>
-        item.id.includes(search) ||
-        item.Materia.toLowerCase().includes(search.toLowerCase()) ||
-        item.Descripcion.toLowerCase().includes(search.toLowerCase())
+        item.ID.toString().includes(search) ||
+        item.Materia_Nombre.toLowerCase().includes(search.toLowerCase()) ||
+        item.Descripcion_Materia.toLowerCase().includes(search.toLowerCase())
     );
 
     // Paginación
@@ -78,29 +153,56 @@ export default function Materia({ navigation }) {
             </View>
 
             <View style={styles.ContenedorCrear}>
-                <TextInput style={styles.CrearMateriaInput} placeholder='Nombre'></TextInput>
-                <TextInput style={styles.CrearMateriaInput} placeholder='Descripcion'></TextInput>
-
-                <TouchableOpacity style={styles.botonCrear}>
+                <TextInput
+                    style={styles.CrearMateriaInput}
+                    placeholder="Nombre"
+                    value={nuevaMateria.nombre}
+                    onChangeText={(text) => setNuevaMateria((prev) => ({ ...prev, nombre: text }))}
+                />
+                <TextInput
+                    style={styles.CrearMateriaInput}
+                    placeholder="Descripcion"
+                    value={nuevaMateria.descripcion}
+                    onChangeText={(text) => setNuevaMateria((prev) => ({ ...prev, descripcion: text }))}
+                />
+                <TouchableOpacity style={styles.botonCrear} onPress={crearMateria}>
                     <Text style={styles.textoBotonPlataforma}> Crear Materia</Text>
                 </TouchableOpacity>
             </View>
 
-            <View style={styles.ContenedorModificar}>
-                <Text style={styles.titleUsuario}>Modificar Materia</Text>
-                <TextInput style={styles.ModificarMateriaInput} placeholder='Nombre'></TextInput>
-                <TextInput style={styles.ModificarMateriaInput} placeholder='Descripcion'></TextInput>
+            {materiaSeleccionada && (
+                <View style={styles.ContenedorModificar}>
+                    <Text style={styles.titleUsuario}>Modificar Materia</Text>
+                    <TextInput
+                        style={styles.ModificarMateriaInput}
+                        placeholder="Nombre"
+                        value={materiaSeleccionada.Materia_Nombre}
+                        onChangeText={(text) =>
+                        setMateriaSeleccionada((prev) => ({ ...prev, Materia_Nombre: text }))
+                        }
+                    />
+                    <TextInput
+                        style={styles.ModificarMateriaInput}
+                        placeholder="Descripcion"
+                        value={materiaSeleccionada.Descripcion_Materia}
+                        onChangeText={(text) =>
+                        setMateriaSeleccionada((prev) => ({ ...prev, Descripcion_Materia: text }))
+                        }
+                    />
 
-                <View style={styles.formularioModificarBotones}>
-                    <TouchableOpacity style={styles.botonCrearUsuario}>
-                        <Text style={styles.textoCrearUsuario}> Modificar</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.botonCrearUsuario}>
-                        <Text style={styles.textoCrearUsuario}> Cancelar</Text>
-                    </TouchableOpacity>
+                    <View style={styles.formularioModificarBotones}>
+                        <TouchableOpacity style={styles.botonCrearUsuario} onPress={modificarMateria}>
+                            <Text style={styles.textoCrearUsuario}> Modificar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.botonCrearUsuario}
+                            onPress={() => setMateriaSeleccionada(null)}
+                            >
+                            <Text style={styles.textoCrearUsuario}> Cancelar</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-            </View>
+            )}
 
             <View style={styles.contenedorTabla}>
                 
@@ -134,18 +236,24 @@ export default function Materia({ navigation }) {
 
                         {filteredData.slice(from, to).map((materia, index) => (
                         <DataTable.Row key={index}>
-                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{materia.id}</Text></DataTable.Cell>
-                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{materia.Materia}</Text></DataTable.Cell>
-                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{materia.Descripcion}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{materia.ID}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{materia.Materia_Nombre}</Text></DataTable.Cell>
+                            <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{materia.Descripcion_Materia}</Text></DataTable.Cell>
                             
                             <DataTable.Cell style={styles.tablaBody}>
-                                <TouchableOpacity style={styles.botonModificar}>
+                                <TouchableOpacity
+                                    style={styles.botonModificar}
+                                    onPress={() => setMateriaSeleccionada(materia)}
+                                >
                                     <FontAwesome name="edit" size={16} color="#fff" />
                                 </TouchableOpacity>
                             </DataTable.Cell>
 
                             <DataTable.Cell style={styles.tablaBody}>
-                                <TouchableOpacity style={styles.botonEliminar}>
+                                <TouchableOpacity
+                                    style={styles.botonEliminar}
+                                    onPress={() => eliminarMateria(materia.ID)}
+                                >
                                     <FontAwesome name="trash" size={16} color="#fff" />
                                 </TouchableOpacity>
                             </DataTable.Cell>
