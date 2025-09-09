@@ -1,15 +1,42 @@
-import { View, Text, Button, Image, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { 
+  View, Text, Image, TouchableOpacity, 
+  StyleSheet, ScrollView, Alert 
+} from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-
-import * as React from 'react';
-import { DataTable } from 'react-native-paper';
+import { useEffect, useState } from "react";
+import { useRoute } from "@react-navigation/native";
 
 import Encabezado from '../Encabezado';
 import Footer from '../footer';
 import Desplegable from '../Desplegable';
-import colors from '../colors'; // 👈 archivo donde guardamos las variables
+import colors from '../colors';
 
 export default function VerHorario({ navigation }) {
+
+    const route = useRoute();
+    const { id } = route.params; // 👈 ID que se pasa al navegar
+    const [horario, setHorario] = useState(null);
+
+    // 👉 Cargar datos del horario
+    useEffect(() => {
+        const obtenerHorario = async () => {
+        try {
+            const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Horarios/${id}`);
+            const data = await res.json();
+
+            if (res.ok) {
+            setHorario(data);
+            } else {
+            Alert.alert("Error", data.error || "No se pudo obtener el horario");
+            }
+        } catch (error) {
+            console.error("Error al obtener el horario:", error);
+            Alert.alert("Error", "Hubo un problema al obtener el horario");
+        }
+        };
+
+        obtenerHorario();
+    }, [id]);
 
     return (
         <View style={styles.contenedor}>
@@ -20,7 +47,7 @@ export default function VerHorario({ navigation }) {
     
             {/* 👉 Scroll vertical */}
             <ScrollView contentContainerStyle={{ flexGrow: 1, alignItems: 'center' }}>
-          
+
             <View style={styles.centroUsuario}>
     
                 <View style={styles.tituloUsuario}>
@@ -32,19 +59,28 @@ export default function VerHorario({ navigation }) {
                     </TouchableOpacity>
                 </View>
 
+                {horario ? (
                 <View style={styles.contenedorHoraio}>
-                    <Text style={styles.titleHorario}>horario primero</Text>
-                    <Image 
-                      source={require('../assets/f4.png')} 
-                      style={styles.fotoHorario} 
-                      resizeMode="contain"
-                    />
+                    <Text style={styles.titleHorario}>{horario.Titulo_Horario || "Horario sin título"}</Text>
+                    
+                    {horario.Imagen_Horario ? (
+                        <Image
+                        source={{ uri: `http://192.168.0.3:3000/imagenes/${horario.Imagen_Horario}` }}
+                        style={styles.fotoHorario}
+                        resizeMode="contain"
+                        />
+                    ) : (
+                        <Text>No se ha subido una imagen para este horario.</Text>
+                    )}
+
                     <View style={styles.contenedorDesc}>
                         <Text style={styles.textTitleDesc}>Descripcion:</Text>
-                        <Text style={styles.textDesc}>Descripcion del horario</Text>
+                        <Text style={styles.textDesc}>{horario.Descripcion_Horario || "Sin descripción"}</Text>
                     </View>
                 </View>
-            
+                ) : (
+                    <Text>Cargando horario...</Text>
+                )}
             </View>
 
         <Footer />

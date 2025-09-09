@@ -134,13 +134,13 @@ export default function Noticia({ navigation }) {
                             <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{noticia.Tipo}</Text></DataTable.Cell>
 
                             <DataTable.Cell style={styles.tablaBody}>
-                                <TouchableOpacity style={styles.botonAccion} onPress={() => navigation.navigate('VerNoticia')}>
+                                <TouchableOpacity style={styles.botonAccion} onPress={() => navigation.navigate('VerNoticia', { id: noticia.ID })}>
                                     <FontAwesome name="info" size={16} color="#fff" />
                                 </TouchableOpacity>
                             </DataTable.Cell>
 
                             <DataTable.Cell style={styles.tablaBody}>
-                                <TouchableOpacity style={styles.botonModificar} onPress={() => navigation.navigate('ActualizarNoticia')}>
+                                <TouchableOpacity style={styles.botonModificar} onPress={() => navigation.navigate('ActualizarNoticia', { id: noticia.ID })}>
                                     <FontAwesome name="edit" size={16} color="#fff" />
                                 </TouchableOpacity>
                             </DataTable.Cell>

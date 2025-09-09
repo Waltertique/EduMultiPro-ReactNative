@@ -139,13 +139,13 @@ export default function Horario({ navigation }) {
                             <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{horario.Profesor_Nombre || "Sin Asignar"}</Text></DataTable.Cell>
 
                             <DataTable.Cell style={styles.tablaBody}>
-                                <TouchableOpacity style={styles.botonAccion} onPress={() => navigation.navigate('VerHorario')}>
+                                <TouchableOpacity style={styles.botonAccion} onPress={() => navigation.navigate('VerHorario', { id: horario.ID })}>
                                     <FontAwesome name="info" size={16} color="#fff" />
                                 </TouchableOpacity>
                             </DataTable.Cell>
 
                             <DataTable.Cell style={styles.tablaBody}>
-                                <TouchableOpacity style={styles.botonModificar} onPress={() => navigation.navigate('ActualizarHorario')}>
+                                <TouchableOpacity style={styles.botonModificar} onPress={() => navigation.navigate('ActualizarHorario', { id: horario.ID })}>
                                     <FontAwesome name="edit" size={16} color="#fff" />
                                 </TouchableOpacity>
                             </DataTable.Cell>

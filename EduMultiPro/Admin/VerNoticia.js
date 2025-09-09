@@ -1,8 +1,8 @@
-import { View, Text, Button, TextInput, Image, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, Image, TouchableOpacity, ScrollView, Alert, StyleSheet } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-
 import * as React from 'react';
-import { DataTable } from 'react-native-paper';
+import { useState, useEffect } from 'react';
+import { useRoute } from '@react-navigation/native';
 
 import Encabezado from '../Encabezado';
 import Footer from '../footer';
@@ -10,6 +10,28 @@ import Desplegable from '../Desplegable';
 import colors from '../colors'; // 👈 archivo donde guardamos las variables
 
 export default function VerNoticia({ navigation }) {
+
+    const route = useRoute();
+    const { id } = route.params; // 👈 el id viene de la navegación
+    const [noticia, setNoticia] = useState(null);
+
+    useEffect(() => {
+        const cargarNoticia = async () => {
+        try {
+            const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Noticias/${id}`);
+            const data = await res.json();
+            if (res.ok) {
+            setNoticia(data);
+            } else {
+            Alert.alert("Error", data.error || "No se pudo cargar la noticia");
+            }
+        } catch (error) {
+            console.error("Error cargando noticia:", error);
+            Alert.alert("Error", "Error de conexión con el servidor");
+        }
+        };
+        cargarNoticia();
+    }, [id]);
 
     return (
         <View style={styles.contenedor}>
@@ -33,29 +55,49 @@ export default function VerNoticia({ navigation }) {
     
                 </View>
 
+                {noticia && (
                 <View style={styles.contenedor1}>
                     <View style={styles.contenedor2}>
-                        <Text style={styles.tituloNoticia}>Nueva tecnológia</Text>
-                        <Text style={styles.parrafoNoticia}>Apple ha presentado oficialmente su nuevo iPhone con capacidades avanzadas de inteligencia artificial, en un evento que ha generado gran expectativa en el mundo tecnológico. El dispositivo incluye un procesador mejorado, sensores más precisos y nuevas funciones que aprenden del comportamiento del usuario para ofrecer una experiencia más personalizada.</Text>
+                        <Text style={styles.tituloNoticia}>{noticia.Titulo_Noticia}</Text>
+                        <Text style={styles.parrafoNoticia}>{noticia.Descripcion1}</Text>
 
-                        <Image 
-                          source={require('../assets/f1.png')} 
-                          style={styles.imagenNoticia} 
-                          resizeMode="contain"
+                        {/* Imagen 2 */}
+                        {noticia.Imagen2 && (
+                        <Image
+                            source={{ uri: `http://192.168.0.3:3000/imagenes/${noticia.Imagen2}` }}
+                            style={styles.imagenNoticia}
+                            resizeMode="contain"
                         />
+                        )}
 
-                        <Text style={styles.parrafoNoticia}>Una de las novedades más destacadas es el asistente inteligente renovado, que no solo responde preguntas sino que también anticipa necesidades, como sugerir rutas menos congestionadas, ajustar automáticamente configuraciones según la hora del día y hasta redactar mensajes con base en el estilo de escritura del usuario. Todo esto se ejecuta localmente, preservando la privacidad del usuario.</Text>
+                        {/* Descripción 2 */}
+                        {noticia.Descripcion2 && (
+                            <Text style={styles.parrafoNoticia}>{noticia.Descripcion2}</Text>
+                        )}
 
-                        <Image 
-                          source={require('../assets/1.png')} 
-                          style={styles.imagenNoticia} 
-                          resizeMode="contain"
+                        {/* Imagen 3 */}
+                        {noticia.Imagen3 && (
+                        <Image
+                            source={{ uri: `http://192.168.0.3:3000/imagenes/${noticia.Imagen3}` }}
+                            style={styles.imagenNoticia}
+                            resizeMode="contain"
                         />
+                        )}
 
-                        <Text style={styles.parrafoNoticia}>Los analistas prevén que esta evolución podría marcar una nueva etapa en la interacción con los smartphones. El lanzamiento estará disponible a nivel mundial a partir del próximo mes, y se espera que motive a otras marcas a acelerar su incorporación de tecnologías basadas en IA.</Text>
+                        {/* Descripción 3 */}
+                        {noticia.Descripcion3 && (
+                            <Text style={styles.parrafoNoticia}>{noticia.Descripcion3}</Text>
+                        )}
+
+                        {/* Fecha */}
+                        <Text style={styles.parrafoNoticia}>
+                            <Text style={{ fontWeight: "bold" }}>Fecha:</Text>{" "}
+                            {new Date(noticia.Fecha_Notica).toLocaleDateString()}
+                        </Text>
                         
                     </View>
                 </View>
+                )}
             
             </View>
 
