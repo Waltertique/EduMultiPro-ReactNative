@@ -26,6 +26,16 @@ import VerNoticia from './VerNoticia';
 import CrearNoticia from './CrearNoticia';
 import ActualizarNoticia from './ActualizarNoticia';
 
+import ActualizarTrabajo from './ActualizarTrabajo';
+import CrearTrabajo from './CrearTrabajo';
+import Nota from './Nota';
+import Persona from './Persona';
+import ReporteAgenda from './ReporteAgenda';
+import ReporteClase from './ReporteClase';
+import Trabajo from './Trabajo';
+import VerTrabajo from './VerTrabajo';
+import VerTrabajoEntregado from './VerTrabajoEntregado';
+
 // 👉 Importamos el menú desplegable
 import Desplegable from '../Desplegable';
 
@@ -92,6 +102,16 @@ export default function AdminStack() {
       <Stack.Screen name="VerNoticia" component={VerNoticia} options={{ headerShown: false }} />
       <Stack.Screen name="CrearNoticia" component={CrearNoticia} options={{ headerShown: false }} />
       <Stack.Screen name="ActualizarNoticia" component={ActualizarNoticia} options={{ headerShown: false }} />
+
+      <Stack.Screen name="ActualizarTrabajo" component={ActualizarTrabajo} options={{ headerShown: false }} />
+      <Stack.Screen name="CrearTrabajo" component={CrearTrabajo} options={{ headerShown: false }} />
+      <Stack.Screen name="Nota" component={Nota} options={{ headerShown: false }} />
+      <Stack.Screen name="Persona" component={Persona} options={{ headerShown: false }} />
+      <Stack.Screen name="ReporteAgenda" component={ReporteAgenda} options={{ headerShown: false }} />
+      <Stack.Screen name="ReporteClase" component={ReporteClase} options={{ headerShown: false }} />
+      <Stack.Screen name="Trabajo" component={Trabajo} options={{ headerShown: false }} />
+      <Stack.Screen name="VerTrabajo" component={VerTrabajo} options={{ headerShown: false }} />
+      <Stack.Screen name="VerTrabajoEntregado" component={VerTrabajoEntregado} options={{ headerShown: false }} />
 
     </Stack.Navigator>
   );
