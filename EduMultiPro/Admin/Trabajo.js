@@ -1,6 +1,8 @@
 import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
+import { Picker } from "@react-native-picker/picker"; //sirve para hacer los select
+
 import * as React from 'react';
 import { DataTable } from 'react-native-paper';
 
@@ -10,6 +12,32 @@ import Desplegable from '../Desplegable';
 import colors from '../colors'; // 👈 archivo donde guardamos las variables
 
 export default function Trabajo({ navigation }) {
+
+    const [page, setPage] = React.useState(0);
+    const itemsPerPage = 10;
+    const [search, setSearch] = React.useState('');
+
+    // Datos estáticos de ejemplo
+    const data = [
+        { id: '1', Titulo: 'Trabajo 1', Fecha: '23/45/5643' },
+        { id: '2', Titulo: 'Trabajo 2', Fecha: '23/45/5643' },
+        { id: '3', Titulo: 'Trabajo 3', Fecha: '23/45/5643' },
+        { id: '4', Titulo: 'Trabajo 4', Fecha: '23/45/5643' },
+        { id: '5', Titulo: 'Trabajo 5', Fecha: '23/45/5643' },
+        { id: '6', Titulo: 'Trabajo 6', Fecha: '23/45/5643' },
+    ];
+
+    // Filtrado por búsqueda
+    const filteredData = data.filter(
+        (item) =>
+        item.id.includes(search) ||
+        item.Titulo.toLowerCase().includes(search.toLowerCase()) ||
+        item.Fecha.toLowerCase().includes(search.toLowerCase())
+    );
+
+    // Paginación
+    const from = page * itemsPerPage;
+    const to = Math.min((page + 1) * itemsPerPage, filteredData.length);
 
     return (
         <View style={styles.contenedor}>
@@ -22,16 +50,109 @@ export default function Trabajo({ navigation }) {
             <ScrollView contentContainerStyle={{ flexGrow: 1, alignItems: 'center' }}>
           
             <View style={styles.centroUsuario}>
+
+                {/* Navegardor de fucniones del Aula */}
+                <View style={styles.tituloTrabajo}>
+                    
+                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('VerAula')}>
+                        <Text style={styles.textoControlAula}> Inicio</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Trabajo')}>
+                        <Text style={styles.textoControlAula}> Trabajos</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Nota')}>
+                        <Text style={styles.textoControlAula}> Notas</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Persona')}>
+                        <Text style={styles.textoControlAula}> Personas</Text>
+                    </TouchableOpacity>
+                    
+                </View>
     
                 <View style={styles.tituloUsuario}>
-                    <Text style={styles.titleUsuario}>Ver Aula</Text>
+                    <Text style={styles.titleUsuario}>Trabajos Actuales</Text>
                     
-                    <TouchableOpacity style={styles.botonCrearUsuario} onPress={() => navigation.navigate('Aula')}>
-                        <FontAwesome name="user" size={16} color="#fff" />
-                        <Text style={styles.textoCrearUsuario}> Salir</Text>
+                    <TouchableOpacity style={styles.botonCrearUsuario} onPress={() => navigation.navigate('CrearTrabajo')}>
+                        <FontAwesome name="users" size={16} color="#fff" />
+                        <Text style={styles.textoCrearUsuario}> Crear</Text>
                     </TouchableOpacity>
-    
+
                 </View>
+
+                <View style={styles.contenedorTabla}>
+                    
+                    <View style={styles.container}>
+                        {/* Barra de búsqueda */}
+                        <TextInput
+                            style={styles.searchInput}
+                            placeholder="Buscar..."
+                            value={search}
+                            onChangeText={(text) => {
+                            setSearch(text);
+                            setPage(0); // reiniciar a la primera página al buscar
+                            }}
+                        />
+
+                        {/* Mostrar cantidad de registros */}
+                        <Text style={styles.infoRegistros}>
+                            Mostrando {from + 1}-{to} de {filteredData.length} registros
+                        </Text>
+
+                        {/* Scroll horizontal para columnas grandes */}
+                        <ScrollView horizontal>
+                            <DataTable>
+                            <DataTable.Header>
+                                <DataTable.Title style={styles.tablaHead}>Titulo</DataTable.Title>
+                                <DataTable.Title style={styles.tablaHead}>Fecha</DataTable.Title>
+                                <DataTable.Title style={styles.tablaHead}>Infomacion</DataTable.Title>
+                                <DataTable.Title style={styles.tablaHead}>Modificar</DataTable.Title>
+                                <DataTable.Title style={styles.tablaHead}>Eliminar</DataTable.Title>
+                            </DataTable.Header>
+                        
+                            {filteredData.slice(from, to).map((trabajo, index) => (
+                                <DataTable.Row key={index}>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{trabajo.Titulo}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{trabajo.Fecha}</Text></DataTable.Cell>
+
+                                <DataTable.Cell style={styles.tablaBody}>
+                                    <TouchableOpacity style={styles.botonAccion} onPress={() => navigation.navigate('VerAula')}>
+                                        <FontAwesome name="info" size={16} color="#fff" />
+                                    </TouchableOpacity>
+                                </DataTable.Cell>
+
+                                <DataTable.Cell style={styles.tablaBody}>
+                                    <TouchableOpacity style={styles.botonModificar} onPress={() => navigation.navigate('ActualizarTrabajo')}>
+                                        <FontAwesome name="edit" size={16} color="#fff" />
+                                    </TouchableOpacity>
+                                </DataTable.Cell>
+
+                                <DataTable.Cell style={styles.tablaBody}>
+                                    <TouchableOpacity style={styles.botonEliminar}>
+                                        <FontAwesome name="trash" size={16} color="#fff" />
+                                    </TouchableOpacity>
+                                </DataTable.Cell>
+                                </DataTable.Row>
+                            ))}
+                        
+                        
+                            {/* Paginación */}
+                            <DataTable.Pagination
+                                page={page}
+                                numberOfPages={Math.ceil(filteredData.length / itemsPerPage)}
+                                onPageChange={(p) => setPage(p)}
+                                label={`${from + 1}-${to} de ${filteredData.length}`}
+                                numberOfItemsPerPage={itemsPerPage}
+                                showFastPagination
+                            />
+                            </DataTable>
+                        </ScrollView>
+                    </View>
+
+                </View>
+
             
             </View>
 
@@ -80,6 +201,93 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         color: '#007bbd',
-    }
+    },
 
+    contenedorTabla:{
+        backgroundColor: 'white',
+        padding: 20,
+        borderRadius: 20,
+        width: '90%',
+        marginVertical: 20,
+    },
+    container: {
+        padding: 10,
+        backgroundColor: colors.fondo,
+    },
+    searchInput: {
+        borderWidth: 1,
+        borderColor: colors.azulSecundario,
+        padding: 8,
+        marginBottom: 10,
+        borderRadius: 5,
+        backgroundColor: '#fff',
+    },
+    infoRegistros: {
+        marginBottom: 5,
+        fontSize: 14,
+        color: '#333',
+    },
+// Estilos de la tabla
+    // Estilos th
+    tablaHead: {
+        justifyContent: 'center', 
+        minWidth: 90, 
+        borderWidth: 1, 
+        borderColor: colors.azulPrimario
+    },
+    // Estilos td
+    tablaBody: {
+        justifyContent: 'center', 
+        width: 150, 
+        borderWidth: 1, 
+        borderColor: colors.azulPrimario
+    },
+    // Estilos botones
+    botonAccion: {
+        alignItems: 'center',
+        backgroundColor: '#17a2b8',
+        padding: 5,
+        width: 25,
+        borderRadius: 5,
+        marginHorizontal: 2,
+    },
+
+    botonModificar: {
+        alignItems: 'center',
+        backgroundColor: '#2600FFFF',
+        padding: 5,
+        width: 25,
+        borderRadius: 5,
+        marginHorizontal: 2,
+    },
+
+    botonEliminar: {
+        alignItems: 'center',
+        backgroundColor: '#dc3545',
+        width: 25,
+        padding: 5,
+        borderRadius: 5,
+        marginHorizontal: 2,
+    },
+    // Fin tabla
+    botonControlAula: {
+        flexDirection: 'row',
+        backgroundColor: colors.azulClaro,
+        width: 80,
+        justifyContent: 'center'
+    },
+    textoControlAula: {
+        color: 'Black',
+        fontSize: 16
+    },
+    tituloTrabajo: {
+        minWidth: '90%',
+        height: 'auto',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderBottomWidth: 2,
+        paddingBottom: 5,
+        marginBottom: 20
+    },
 });
