@@ -8,12 +8,14 @@ import Footer from '../footer';
 import Desplegable from '../Desplegable';
 import colors from '../colors';
 
+import { apiFetch } from "../api"; // 👈 importa tu helper
+
 export default function VerCurso({ navigation, route }) {
 
     const { id } = route.params; // 👈 ID del curso recibido como parámetro de navegación
 
     const [page, setPage] = React.useState(0);
-    const itemsPerPage = 5;
+    const itemsPerPage = 10;
     const [search, setSearch] = React.useState('');
     const [integrantes, setIntegrantes] = React.useState([]);
     const [usuarioID, setUsuarioID] = React.useState('');
@@ -21,7 +23,7 @@ export default function VerCurso({ navigation, route }) {
     // ✅ Cargar integrantes desde la API
     const cargarIntegrantes = async () => {
         try {
-        const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Cursos/${id}/integrantes`);
+        const res = await apiFetch(`/Cursos/${id}/integrantes`);
         const data = await res.json();
         setIntegrantes(data);
         } catch (error) {
@@ -42,7 +44,7 @@ export default function VerCurso({ navigation, route }) {
         }
 
         try {
-        const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Cursos/${id}/integrantes`, {
+        const res = await apiFetch(`/Cursos/${id}/integrantes`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ usuario_id: usuarioID }),
@@ -73,8 +75,8 @@ export default function VerCurso({ navigation, route }) {
             style: 'destructive',
             onPress: async () => {
                 try {
-                const res = await fetch(
-                    `http://192.168.0.3:3000/api/edumultipro/Cursos/${id}/integrantes/${usuarioId}`,
+                const res = await apiFetch(
+                    `/Cursos/${id}/integrantes/${usuarioId}`,
                     { method: 'DELETE' }
                 );
 

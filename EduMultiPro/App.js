@@ -13,6 +13,9 @@ import PrincipalAlumno from './Alumno/PrincipalAlumno';
 
 import * as React from 'react';
 
+// 👇 Importamos la instancia de axios configurada
+import { apiFetch } from "./api"; // 👈 Importa tu helper
+
 const Stack = createNativeStackNavigator();
 
 // 👉 Pantalla de Login
@@ -22,7 +25,8 @@ function LoginScreen({ navigation }) {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch("http://192.168.0.3:3000/api/edumultipro/login", {
+      const response = await apiFetch("/login", {
+        
         // 🔹 Si usas emulador Android -> 10.0.2.2
         // 🔹 Si pruebas en celular físico -> http://IP_DE_TU_PC:3000
         // 🔹 Si usas iOS simulator -> http://localhost:3000

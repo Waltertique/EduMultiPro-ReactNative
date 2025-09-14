@@ -14,6 +14,9 @@ import Footer from '../footer';
 import Desplegable from '../Desplegable';
 import colors from '../colors';
 
+import { apiFetch } from "../api"; // 👈 importa tu helper
+import { STATIC_URL } from "../api"; // 👈 importa aquí
+
 export default function ActualizarHorario({ navigation }) {
 
     const route = useRoute();
@@ -36,9 +39,9 @@ export default function ActualizarHorario({ navigation }) {
         const cargarDatos = async () => {
         try {
             const [hp, hs, cps] = await Promise.all([
-            fetch(`http://192.168.0.3:3000/api/edumultipro/Horarios/${id}`).then(r => r.json()),
-            fetch("http://192.168.0.3:3000/api/edumultipro/Profesores").then(r => r.json()),
-            fetch("http://192.168.0.3:3000/api/edumultipro/Cursos-jornada").then(r => r.json()),
+            apiFetch(`/Horarios/${id}`).then(r => r.json()),
+            apiFetch("/Profesores").then(r => r.json()),
+            apiFetch("/Cursos-jornada").then(r => r.json()),
             ]);
 
             setFormulario({
@@ -130,7 +133,7 @@ export default function ActualizarHorario({ navigation }) {
         formData.append("profesor_id", profesor_id);
         formData.append("curso_id", curso_id);
 
-        const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Horarios/${id}`, {
+        const res = await apiFetch(`/Horarios/${id}`, {
             method: "PUT",
             body: formData,
         });
@@ -192,7 +195,7 @@ export default function ActualizarHorario({ navigation }) {
                     <View style={{ alignItems: "center", marginVertical: 10 }}>
                         <Text>Horario actual:</Text>
                         <Image 
-                        source={{ uri: `http://192.168.0.3:3000/imagenes/${formulario.imagenActual}` }} 
+                        source={{ uri: `${STATIC_URL}/imagenes/${formulario.imagenActual}` }} 
                         style={{ width: 200, height: 150, marginTop: 5, borderRadius: 10 }} 
                         resizeMode="contain"
                         />

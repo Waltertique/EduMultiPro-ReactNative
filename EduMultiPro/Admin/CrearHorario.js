@@ -13,6 +13,8 @@ import Footer from '../footer';
 import Desplegable from '../Desplegable';
 import colors from '../colors';
 
+import { apiFetch } from "../api"; // 👈 importa tu helper
+
 export default function CrearHorario({ navigation }) {
 
     const [formulario, setFormulario] = useState({
@@ -28,12 +30,12 @@ export default function CrearHorario({ navigation }) {
 
     // 👉 Cargar datos
     useEffect(() => {
-        fetch("http://192.168.0.3:3000/api/edumultipro/Profesores")
+        apiFetch("/Profesores")
         .then(res => res.json())
         .then(data => setProfesores(data))
         .catch(err => console.error("Error cargando profesores:", err));
 
-        fetch("http://192.168.0.3:3000/api/edumultipro/Cursos-jornada")
+        apiFetch("/Cursos-jornada")
         .then(res => res.json())
         .then(data => setCursos(data))
         .catch(err => console.error("Error cargando cursos:", err));
@@ -111,7 +113,7 @@ export default function CrearHorario({ navigation }) {
         formData.append("profesor_id", profesor_id);
         formData.append("curso_id", curso_id);
 
-        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Horarios", {
+        const res = await apiFetch("/Horarios", {
             method: "POST",
             body: formData,
         });

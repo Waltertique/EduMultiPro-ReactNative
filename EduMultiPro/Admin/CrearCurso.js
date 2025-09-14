@@ -8,6 +8,8 @@ import Footer from '../footer';
 import Desplegable from '../Desplegable';
 import colors from '../colors';
 
+import { apiFetch } from "../api"; // 👈 importa tu helper
+
 export default function CrearCurso({ navigation }) {
 
     const [cursoNombre, setCursoNombre] = React.useState("");
@@ -20,11 +22,11 @@ export default function CrearCurso({ navigation }) {
     React.useEffect(() => {
         const fetchData = async () => {
         try {
-            const resGrados = await fetch("http://192.168.0.3:3000/api/edumultipro/Grados");
+            const resGrados = await apiFetch("/Grados");
             const dataGrados = await resGrados.json();
             setGrados(dataGrados);
 
-            const resJornadas = await fetch("http://192.168.0.3:3000/api/edumultipro/Jornadas");
+            const resJornadas = await apiFetch("/Jornadas");
             const dataJornadas = await resJornadas.json();
             setJornadas(dataJornadas);
         } catch (error) {
@@ -44,7 +46,7 @@ export default function CrearCurso({ navigation }) {
         }
 
         try {
-        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Cursos", {
+        const res = await apiFetch("/Cursos", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({

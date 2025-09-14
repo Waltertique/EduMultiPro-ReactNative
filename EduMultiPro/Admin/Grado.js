@@ -9,6 +9,8 @@ import Footer from '../footer';
 import Desplegable from '../Desplegable';
 import colors from '../colors';
 
+import { apiFetch } from "../api"; // 👈 importa tu helper
+
 export default function Grado({ navigation }) {
 
     const [page, setPage] = React.useState(0);
@@ -25,7 +27,7 @@ export default function Grado({ navigation }) {
     // ✅ Obtener grados desde la API
     const obtenerGrados = async () => {
         try {
-        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Grados");
+        const res = await apiFetch("/Grados");
         const data = await res.json();
         setGrados(data);
         } catch (error) {
@@ -45,7 +47,7 @@ export default function Grado({ navigation }) {
         }
 
         try {
-        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Grados", {
+        const res = await apiFetch("/Grados", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -68,7 +70,7 @@ export default function Grado({ navigation }) {
         if (!gradoSeleccionado) return;
 
         try {
-        const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Grados/${gradoSeleccionado.ID}`, {
+        const res = await apiFetch(`/Grados/${gradoSeleccionado.ID}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -94,7 +96,7 @@ export default function Grado({ navigation }) {
             text: "Eliminar",
             onPress: async () => {
             try {
-                const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Grados/${id}`, {
+                const res = await apiFetch(`/Grados/${id}`, {
                 method: "DELETE",
                 });
 

@@ -13,6 +13,8 @@ import Footer from '../footer';
 import Desplegable from '../Desplegable';
 import colors from '../colors'; // 👈 archivo donde guardamos las variables
 
+import { apiFetch } from "../api"; // 👈 importa tu helper
+
 export default function CrearUsuario({ navigation }) {
 
     const [formulario, setFormulario] = React.useState({
@@ -37,12 +39,12 @@ export default function CrearUsuario({ navigation }) {
     const [documentos, setDocumentos] = React.useState([]);
 
     React.useEffect(() => {
-    fetch("http://192.168.0.3:3000/api/edumultipro/roles")
+    apiFetch("/roles")
         .then(res => res.json())
         .then(data => setRoles(data))
         .catch(err => console.error("Error cargando roles:", err));
 
-    fetch("http://192.168.0.3:3000/api/edumultipro/documentos")
+    apiFetch("/documentos")
         .then(res => res.json())
         .then(data => setDocumentos(data))
         .catch(err => console.error("Error cargando documentos:", err));
@@ -127,7 +129,7 @@ export default function CrearUsuario({ navigation }) {
             }
         }
 
-        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/crearUsuario", {
+        const res = await apiFetch("/crearUsuario", {
             method: "POST",
             body: datos,
         });

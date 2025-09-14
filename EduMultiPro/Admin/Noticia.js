@@ -8,6 +8,8 @@ import Footer from '../footer';
 import Desplegable from '../Desplegable';
 import colors from '../colors';
 
+import { apiFetch } from "../api"; // 👈 importa tu helper
+
 export default function Noticia({ navigation }) {
 
     const [noticias, setNoticias] = React.useState([]);
@@ -18,7 +20,7 @@ export default function Noticia({ navigation }) {
     // 🔹 Obtener Noticias desde el backend
     const obtenerNoticias = async () => {
         try {
-        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Noticias"); 
+        const res = await apiFetch("/Noticias"); 
         // 👉 en físico cambia 10.0.2.2 por la IP local de tu PC
         const data = await res.json();
         setNoticias(data);
@@ -40,7 +42,7 @@ export default function Noticia({ navigation }) {
             style: "destructive",
             onPress: async () => {
                 try {
-                const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Noticias/${id}`, {
+                const res = await apiFetch(`/Noticias/${id}`, {
                     method: "DELETE",
                 });
                 const data = await res.json();

@@ -16,6 +16,9 @@ import Footer from '../footer';
 import Desplegable from '../Desplegable';
 import colors from '../colors';
 
+import { apiFetch } from "../api"; // 👈 importa tu helper
+import { STATIC_URL } from "../api"; // 👈 importa aquí
+
 export default function ActualizarNoticia({ navigation }) {
 
     const route = useRoute();
@@ -41,8 +44,8 @@ export default function ActualizarNoticia({ navigation }) {
         const cargar = async () => {
         try {
             const [notaRes, tiposRes] = await Promise.all([
-            fetch(`http://192.168.0.3:3000/api/edumultipro/Noticias/${id}`).then(r => r.json()),
-            fetch("http://192.168.0.3:3000/api/edumultipro/TiposNoticia").then(r => r.json())
+            apiFetch(`/Noticias/${id}`).then(r => r.json()),
+            apiFetch("/TiposNoticia").then(r => r.json())
             ]);
 
             setFormulario({
@@ -139,7 +142,7 @@ export default function ActualizarNoticia({ navigation }) {
             }
         }
 
-        const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Noticias/${id}`, {
+        const res = await apiFetch(`/Noticias/${id}`, {
             method: "PUT",
             body: datos,
         });
@@ -228,7 +231,7 @@ export default function ActualizarNoticia({ navigation }) {
                         <Text>Imagen {idx + 1}</Text>
                         {imagenesActuales[campo] ? (
                         <Image
-                            source={{ uri: `http://192.168.0.3:3000/imagenes/${imagenesActuales[campo]}` }}
+                            source={{ uri: `${STATIC_URL}/imagenes/${imagenesActuales[campo]}` }}
                             style={{ width: 150, height: 100, marginBottom: 5 }}
                         />
                         ) : (

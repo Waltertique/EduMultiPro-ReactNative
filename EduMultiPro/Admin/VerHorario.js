@@ -11,6 +11,9 @@ import Footer from '../footer';
 import Desplegable from '../Desplegable';
 import colors from '../colors';
 
+import { apiFetch } from "../api"; // 👈 importa tu helper
+import { STATIC_URL } from "../api"; // 👈 importa aquí
+
 export default function VerHorario({ navigation }) {
 
     const route = useRoute();
@@ -21,7 +24,7 @@ export default function VerHorario({ navigation }) {
     useEffect(() => {
         const obtenerHorario = async () => {
         try {
-            const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Horarios/${id}`);
+            const res = await apiFetch(`/Horarios/${id}`);
             const data = await res.json();
 
             if (res.ok) {
@@ -65,7 +68,7 @@ export default function VerHorario({ navigation }) {
                     
                     {horario.Imagen_Horario ? (
                         <Image
-                        source={{ uri: `http://192.168.0.3:3000/imagenes/${horario.Imagen_Horario}` }}
+                        source={{ uri: `${STATIC_URL}/imagenes/${horario.Imagen_Horario}` }}
                         style={styles.fotoHorario}
                         resizeMode="contain"
                         />

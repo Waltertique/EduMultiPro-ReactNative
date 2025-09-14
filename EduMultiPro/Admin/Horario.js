@@ -8,6 +8,8 @@ import Footer from '../footer';
 import Desplegable from '../Desplegable';
 import colors from '../colors';
 
+import { apiFetch } from "../api"; // 👈 importa tu helper
+
 export default function Horario({ navigation }) {
 
     const [horarios, setHorarios] = React.useState([]);
@@ -18,7 +20,7 @@ export default function Horario({ navigation }) {
     // 🔹 Obtener horarios del backend
     const obtenerHorarios = async () => {
         try {
-        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Horarios"); 
+        const res = await apiFetch("/Horarios"); 
         const data = await res.json();
         setHorarios(data);
         } catch (err) {
@@ -39,7 +41,7 @@ export default function Horario({ navigation }) {
             style: "destructive",
             onPress: async () => {
                 try {
-                const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Horarios/${id}`, {
+                const res = await apiFetch(`/Horarios/${id}`, {
                     method: "DELETE",
                 });
                 const data = await res.json();

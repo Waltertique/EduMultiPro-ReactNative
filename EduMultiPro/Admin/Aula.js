@@ -9,6 +9,8 @@ import Footer from '../footer';
 import Desplegable from '../Desplegable';
 import colors from '../colors';
 
+import { apiFetch } from "../api"; // 👈 importa tu helper
+
 export default function Aula({ navigation }) {
 
     const [page, setPage] = React.useState(0);
@@ -24,7 +26,7 @@ export default function Aula({ navigation }) {
     // Obtener aulas
     const obtenerAulas = async () => {
         try {
-        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Aulas");
+        const res = await apiFetch("/Aulas");
         const data = await res.json();
         setAulas(data);
         } catch (error) {
@@ -35,7 +37,7 @@ export default function Aula({ navigation }) {
     // Obtener materias
     const obtenerMaterias = async () => {
         try {
-        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Materias");
+        const res = await apiFetch("/Materias");
         const data = await res.json();
         setMaterias(data);
         } catch (error) {
@@ -51,7 +53,7 @@ export default function Aula({ navigation }) {
             text: "Eliminar", 
             onPress: async () => {
             try {
-                const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Aulas/${id}`, {
+                const res = await apiFetch(`/Aulas/${id}`, {
                 method: "DELETE"
                 });
                 const data = await res.json();
@@ -68,7 +70,7 @@ export default function Aula({ navigation }) {
     // Guardar cambios de modificación
     const guardarCambios = async () => {
         try {
-        const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Aulas/${aulaSeleccionada.ID}`, {
+        const res = await apiFetch(`/Aulas/${aulaSeleccionada.ID}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(aulaSeleccionada)

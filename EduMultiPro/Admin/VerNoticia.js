@@ -9,6 +9,9 @@ import Footer from '../footer';
 import Desplegable from '../Desplegable';
 import colors from '../colors'; // 👈 archivo donde guardamos las variables
 
+import { apiFetch } from "../api"; // 👈 importa tu helper
+import { STATIC_URL } from "../api"; // 👈 importa aquí
+
 export default function VerNoticia({ navigation }) {
 
     const route = useRoute();
@@ -18,7 +21,7 @@ export default function VerNoticia({ navigation }) {
     useEffect(() => {
         const cargarNoticia = async () => {
         try {
-            const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Noticias/${id}`);
+            const res = await apiFetch(`/Noticias/${id}`);
             const data = await res.json();
             if (res.ok) {
             setNoticia(data);
@@ -64,7 +67,7 @@ export default function VerNoticia({ navigation }) {
                         {/* Imagen 2 */}
                         {noticia.Imagen2 && (
                         <Image
-                            source={{ uri: `http://192.168.0.3:3000/imagenes/${noticia.Imagen2}` }}
+                            source={{ uri: `${STATIC_URL}/imagenes/${noticia.Imagen2}` }}
                             style={styles.imagenNoticia}
                             resizeMode="contain"
                         />
@@ -78,7 +81,7 @@ export default function VerNoticia({ navigation }) {
                         {/* Imagen 3 */}
                         {noticia.Imagen3 && (
                         <Image
-                            source={{ uri: `http://192.168.0.3:3000/imagenes/${noticia.Imagen3}` }}
+                            source={{ uri: `${STATIC_URL}/imagenes/${noticia.Imagen3}` }}
                             style={styles.imagenNoticia}
                             resizeMode="contain"
                         />

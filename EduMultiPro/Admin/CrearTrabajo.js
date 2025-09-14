@@ -9,6 +9,8 @@ import Footer from '../footer';
 import Desplegable from '../Desplegable';
 import colors from '../colors'; // 👈 archivo donde guardamos las variables
 
+import { apiFetch } from "../api"; // 👈 importa tu helper
+
 export default function CrearTrabajo({ navigation }) {
 
     return (

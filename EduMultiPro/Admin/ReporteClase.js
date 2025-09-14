@@ -1,5 +1,8 @@
-import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+
+import { Picker } from "@react-native-picker/picker"; //sirve para hacer los select
 
 import * as React from 'react';
 import { DataTable } from 'react-native-paper';
@@ -9,7 +12,41 @@ import Footer from '../footer';
 import Desplegable from '../Desplegable';
 import colors from '../colors'; // 👈 archivo donde guardamos las variables
 
-export default function ReporteClase() {
+import { apiFetch } from "../api"; // 👈 importa tu helper
+
+export default function ReporteClase({ navigation }) {
+
+    const [page, setPage] = React.useState(0);
+    const itemsPerPage = 10;
+    const [search, setSearch] = React.useState('');
+
+    // Datos estáticos de ejemplo
+    const data = [
+        { id: '1', Nombre: 'Aula 203', Materia: 'ingles', Curso: '203', Profesor: 'juan', CantidadUsuario: '4', CantidadAnuncio: '1', CantidadComentario: '3', CantidadTrabajo: '2' },
+        { id: '2', Nombre: 'Aula 203', Materia: 'ingles', Curso: '203', Profesor: 'juan', CantidadUsuario: '4', CantidadAnuncio: '1', CantidadComentario: '3', CantidadTrabajo: '2' },
+        { id: '3', Nombre: 'Aula 203', Materia: 'ingles', Curso: '203', Profesor: 'juan', CantidadUsuario: '4', CantidadAnuncio: '1', CantidadComentario: '3', CantidadTrabajo: '2' },
+        { id: '4', Nombre: 'Aula 203', Materia: 'ingles', Curso: '203', Profesor: 'juan', CantidadUsuario: '4', CantidadAnuncio: '1', CantidadComentario: '3', CantidadTrabajo: '2' },
+        { id: '5', Nombre: 'Aula 203', Materia: 'ingles', Curso: '203', Profesor: 'juan', CantidadUsuario: '4', CantidadAnuncio: '1', CantidadComentario: '3', CantidadTrabajo: '2' },
+        { id: '6', Nombre: 'Aula 203', Materia: 'ingles', Curso: '203', Profesor: 'juan', CantidadUsuario: '4', CantidadAnuncio: '1', CantidadComentario: '3', CantidadTrabajo: '2' },
+    ];
+
+    // Filtrado por búsqueda
+    const filteredData = data.filter(
+        (item) =>
+        item.id.includes(search) ||
+        item.Nombre.toLowerCase().includes(search.toLowerCase()) ||
+        item.Materia.toLowerCase().includes(search.toLowerCase()) ||
+        item.Curso.toLowerCase().includes(search.toLowerCase()) ||
+        item.Profesor.toLowerCase().includes(search.toLowerCase()) ||
+        item.CantidadUsuario.toLowerCase().includes(search.toLowerCase()) ||
+        item.CantidadAnuncio.toLowerCase().includes(search.toLowerCase()) ||
+        item.CantidadComentario.toLowerCase().includes(search.toLowerCase()) ||
+        item.CantidadTrabajo.toLowerCase().includes(search.toLowerCase())
+    );
+
+    // Paginación
+    const from = page * itemsPerPage;
+    const to = Math.min((page + 1) * itemsPerPage, filteredData.length);
 
   return (
     <View style={styles.contenedor}>
@@ -23,18 +60,96 @@ export default function ReporteClase() {
       
         <View style={styles.centroUsuario}>
 
-            <View style={styles.tituloUsuario}>
-                <Text style={styles.titleUsuario}>Reportes</Text>
+            {/* Botones de plataforma, clase y Agenda */}
+
+            <View style={styles.BotonesPlataforma}>
+
+                <TouchableOpacity style={styles.botonPlataforma} onPress={() => navigation.navigate('Reporte')}>
+                    <FontAwesome5 name="book" size={16} color={colors.azulPrimario} />
+                    <Text style={styles.textobotonPlataforma}> Plataforma</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.botonPlataforma} onPress={() => navigation.navigate('ReporteClase')}>
+                    <FontAwesome5 name="temperature-low" size={16} color={colors.azulPrimario} />
+                    <Text style={styles.textobotonPlataforma}> Clase</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.botonPlataforma} onPress={() => navigation.navigate('ReporteAgenda')}>
+                    <FontAwesome5 name="clock" size={16} color={colors.azulPrimario} />
+                    <Text style={styles.textobotonPlataforma}> Agenda</Text>
+                </TouchableOpacity>
 
             </View>
 
-            <View style={styles.contenedorTabla}>
-                
-                <View style={styles.container}>
+                <View style={styles.tituloUsuario}>
+                    <Text style={styles.titleUsuario}>Aulas</Text>
                     
+                    <Text style={styles.titleUsuario}>Aulas Totales: 16</Text>
                 </View>
 
-            </View>
+                <View style={styles.contenedorTabla}>
+                    
+                    <View style={styles.container}>
+                        {/* Barra de búsqueda */}
+                        <TextInput
+                            style={styles.searchInput}
+                            placeholder="Buscar..."
+                            value={search}
+                            onChangeText={(text) => {
+                            setSearch(text);
+                            setPage(0); // reiniciar a la primera página al buscar
+                            }}
+                        />
+
+                        {/* Mostrar cantidad de registros */}
+                        <Text style={styles.infoRegistros}>
+                            Mostrando {from + 1}-{to} de {filteredData.length} registros
+                        </Text>
+
+                        {/* Scroll horizontal para columnas grandes */}
+                        <ScrollView horizontal>
+                            <DataTable>
+                            <DataTable.Header>
+                                <DataTable.Title style={styles.tablaHead}>ID</DataTable.Title>
+                                <DataTable.Title style={styles.tablaHead}>Nombre</DataTable.Title>
+                                <DataTable.Title style={styles.tablaHead}>Materia</DataTable.Title>
+                                <DataTable.Title style={styles.tablaHead}>Curso</DataTable.Title>
+                                <DataTable.Title style={styles.tablaHead}>Profesor</DataTable.Title>
+                                <DataTable.Title style={styles.tablaHead}>CantidadUsuario</DataTable.Title>
+                                <DataTable.Title style={styles.tablaHead}>CantidadAnuncio</DataTable.Title>
+                                <DataTable.Title style={styles.tablaHead}>CantidadComentario</DataTable.Title>
+                                <DataTable.Title style={styles.tablaHead}>CantidadTrabajo</DataTable.Title>
+                            </DataTable.Header>
+                        
+                            {filteredData.slice(from, to).map((trabajo, index) => (
+                                <DataTable.Row key={index}>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{trabajo.id}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{trabajo.Nombre}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{trabajo.Materia}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{trabajo.Curso}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{trabajo.Profesor}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{trabajo.CantidadUsuario}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{trabajo.CantidadAnuncio}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{trabajo.CantidadComentario}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{trabajo.CantidadTrabajo}</Text></DataTable.Cell>
+                                </DataTable.Row>
+                            ))}
+                        
+                        
+                            {/* Paginación */}
+                            <DataTable.Pagination
+                                page={page}
+                                numberOfPages={Math.ceil(filteredData.length / itemsPerPage)}
+                                onPageChange={(p) => setPage(p)}
+                                label={`${from + 1}-${to} de ${filteredData.length}`}
+                                numberOfItemsPerPage={itemsPerPage}
+                                showFastPagination
+                            />
+                            </DataTable>
+                        </ScrollView>
+                    </View>
+
+                </View>
 
         </View>
 
@@ -63,7 +178,6 @@ const styles = StyleSheet.create({
         paddingVertical: 20,
         alignItems: 'center',
     },
-
     tituloUsuario: {
         width: '90%',
         height: 'auto',
@@ -71,23 +185,33 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
     },
-    botonCrearUsuario: {
-        flexDirection: 'row',
-        backgroundColor: '#007bbd',
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderRadius: 10,
-    },
-    textoCrearUsuario: {
-        color: 'white',
-    },
     titleUsuario: {
         fontSize: 18,
         fontWeight: 'bold',
         color: '#007bbd',
     },
-
-    contenedorTabla:{
+    //botonones plataforma
+    BotonesPlataforma:{
+        minWidth: '90%',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 25,
+    },
+    botonPlataforma: {
+        alignItems: 'center',
+        flexDirection: 'column',
+        backgroundColor: 'white',
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 10,
+        width: 95,
+        borderTopColor: colors.azulPrimario,
+        borderTopWidth: 3,
+    },
+    textobotonPlataforma:{
+        color: colors.azulPrimario
+    },
+contenedorTabla:{
         backgroundColor: 'white',
         padding: 20,
         borderRadius: 20,
@@ -98,5 +222,34 @@ const styles = StyleSheet.create({
         padding: 10,
         backgroundColor: colors.fondo,
     },
+    searchInput: {
+        borderWidth: 1,
+        borderColor: colors.azulSecundario,
+        padding: 8,
+        marginBottom: 10,
+        borderRadius: 5,
+        backgroundColor: '#fff',
+    },
+    infoRegistros: {
+        marginBottom: 5,
+        fontSize: 14,
+        color: '#333',
+    },
+    // Estilos de la tabla
+    // Estilos th
+    tablaHead: {
+        justifyContent: 'center', 
+        minWidth: 120, 
+        borderWidth: 1, 
+        borderColor: colors.azulPrimario
+    },
+    // Estilos td
+    tablaBody: {
+        justifyContent: 'center', 
+        width: 150, 
+        borderWidth: 1, 
+        borderColor: colors.azulPrimario
+    },
+    // Fin tabla
 
 });

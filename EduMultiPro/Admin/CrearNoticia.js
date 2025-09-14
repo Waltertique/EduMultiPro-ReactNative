@@ -15,6 +15,8 @@ import Footer from '../footer';
 import Desplegable from '../Desplegable';
 import colors from '../colors';
 
+import { apiFetch } from "../api"; // 👈 importa tu helper
+
 export default function CrearNoticia({ navigation }) {
 
     const [formulario, setFormulario] = useState({
@@ -33,7 +35,7 @@ export default function CrearNoticia({ navigation }) {
 
     // cargar tipos desde la API
     useEffect(() => {
-        fetch("http://192.168.0.3:3000/api/edumultipro/TiposNoticia")
+        apiFetch("/TiposNoticia")
         .then(res => res.json())
         .then(data => setTipos(data))
         .catch(err => console.error("Error cargando tipos:", err));
@@ -112,7 +114,7 @@ export default function CrearNoticia({ navigation }) {
             }
         }
 
-        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Noticias", {
+        const res = await apiFetch("/Noticias", {
             method: "POST",
             body: datos,
         });

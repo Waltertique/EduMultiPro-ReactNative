@@ -7,6 +7,7 @@ import Encabezado from '../Encabezado';
 import Footer from '../footer';
 import Desplegable from '../Desplegable';
 import colors from '../colors';
+import { apiFetch } from "../api"; // 👈 importa tu helper
 
 export default function Usuario({ navigation }) {
 
@@ -18,7 +19,7 @@ export default function Usuario({ navigation }) {
     // 🔹 Obtener usuarios del backend
     const obtenerUsuarios = async () => {
         try {
-        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Usuarios"); 
+        const res = await apiFetch("/Usuarios");
         // Si pruebas en físico: usa http://IP_DE_TU_PC:3000
         const data = await res.json();
         setUsuarios(data);
@@ -40,7 +41,7 @@ export default function Usuario({ navigation }) {
             style: "destructive",
             onPress: async () => {
                 try {
-                const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/usuarios/${id}`, {
+                const res = await apiFetch(`/usuarios/${id}`, {
                     method: "DELETE",
                 });
                 const data = await res.json();

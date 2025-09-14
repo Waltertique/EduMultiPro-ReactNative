@@ -12,6 +12,8 @@ import Footer from '../footer';
 import Desplegable from '../Desplegable';
 import colors from '../colors'; // 👈 archivo donde guardamos las variables
 
+import { apiFetch } from "../api"; // 👈 importa tu helper
+
 export default function Curso({ navigation }) {
 
     const [page, setPage] = React.useState(0);
@@ -27,7 +29,7 @@ export default function Curso({ navigation }) {
     // Obtener todos los cursos
     const obtenerCursos = async () => {
     try {
-        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Cursos");
+        const res = await apiFetch("/Cursos");
         const data = await res.json();
         setCursos(data);
     } catch (error) {
@@ -38,7 +40,7 @@ export default function Curso({ navigation }) {
     // Obtener todos los grados
     const obtenerGrados = async () => {
     try {
-        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Grados");
+        const res = await apiFetch("/Grados");
         const data = await res.json();
         setGrados(data);
     } catch (error) {
@@ -49,7 +51,7 @@ export default function Curso({ navigation }) {
     // Obtener todas las jornadas
     const obtenerJornadas = async () => {
     try {
-        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Jornadas");
+        const res = await apiFetch("/Jornadas");
         const data = await res.json();
         setJornadas(data);
     } catch (error) {
@@ -66,7 +68,7 @@ export default function Curso({ navigation }) {
                 { text: "Cancelar", style: "cancel" },
                 { text: "Eliminar", style: "destructive", onPress: async () => {
                     try {
-                        const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Cursos/${id}`, {
+                        const res = await apiFetch(`/Cursos/${id}`, {
                             method: "DELETE",
                         });
                         const data = await res.json();
@@ -95,7 +97,7 @@ export default function Curso({ navigation }) {
         }
 
         try {
-            const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Cursos/${cursoSeleccionado.ID}`, {
+            const res = await apiFetch(`/Cursos/${cursoSeleccionado.ID}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

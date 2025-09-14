@@ -9,6 +9,8 @@ import Footer from '../footer';
 import Desplegable from '../Desplegable';
 import colors from '../colors';
 
+import { apiFetch } from "../api"; // 👈 importa tu helper
+
 export default function Materia({ navigation }) {
 
     const [page, setPage] = React.useState(0);
@@ -23,7 +25,7 @@ export default function Materia({ navigation }) {
     // Obtener materias desde la API
     const obtenerMaterias = async () => {
         try {
-        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Materias");
+        const res = await apiFetch("/Materias");
         const data = await res.json();
         setMaterias(data);
         } catch (err) {
@@ -39,7 +41,7 @@ export default function Materia({ navigation }) {
     // Crear materia
     const crearMateria = async () => {
         try {
-        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Materias", {
+        const res = await apiFetch("/Materias", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -60,7 +62,7 @@ export default function Materia({ navigation }) {
     // Modificar materia
     const modificarMateria = async () => {
         try {
-        const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Materias/${materiaSeleccionada.ID}`, {
+        const res = await apiFetch(`/Materias/${materiaSeleccionada.ID}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -86,7 +88,7 @@ export default function Materia({ navigation }) {
             text: "Eliminar",
             onPress: async () => {
             try {
-                const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Materias/${id}`, {
+                const res = await apiFetch(`/Materias/${id}`, {
                 method: "DELETE",
                 });
                 const data = await res.json();

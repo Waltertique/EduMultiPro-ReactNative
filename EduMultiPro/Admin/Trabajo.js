@@ -11,6 +11,8 @@ import Footer from '../footer';
 import Desplegable from '../Desplegable';
 import colors from '../colors'; // 👈 archivo donde guardamos las variables
 
+import { apiFetch } from "../api"; // 👈 importa tu helper
+
 export default function Trabajo({ navigation }) {
 
     const [page, setPage] = React.useState(0);
@@ -118,7 +120,7 @@ export default function Trabajo({ navigation }) {
                                 <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{trabajo.Fecha}</Text></DataTable.Cell>
 
                                 <DataTable.Cell style={styles.tablaBody}>
-                                    <TouchableOpacity style={styles.botonAccion} onPress={() => navigation.navigate('VerAula')}>
+                                    <TouchableOpacity style={styles.botonAccion} onPress={() => navigation.navigate('VerTrabajo')}>
                                         <FontAwesome name="info" size={16} color="#fff" />
                                     </TouchableOpacity>
                                 </DataTable.Cell>

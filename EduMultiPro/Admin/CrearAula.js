@@ -8,6 +8,8 @@ import Footer from '../footer';
 import Desplegable from '../Desplegable';
 import colors from '../colors';
 
+import { apiFetch } from "../api"; // 👈 importa tu helper
+
 
 export default function CrearAula({ navigation }) {
 
@@ -24,13 +26,13 @@ export default function CrearAula({ navigation }) {
     React.useEffect(() => {
         const fetchData = async () => {
         try {
-            const resMaterias = await fetch("http://192.168.0.3:3000/api/edumultipro/Materias");
+            const resMaterias = await apiFetch("/Materias");
             setMaterias(await resMaterias.json());
 
-            const resCursos = await fetch("http://192.168.0.3:3000/api/edumultipro/Cursos-jornada");
+            const resCursos = await apiFetch("/Cursos-jornada");
             setCursos(await resCursos.json());
 
-            const resProfes = await fetch("http://192.168.0.3:3000/api/edumultipro/Profesores");
+            const resProfes = await apiFetch("/Profesores");
             setProfesores(await resProfes.json());
         } catch (error) {
             console.error("Error al cargar datos:", error);
@@ -54,7 +56,7 @@ export default function CrearAula({ navigation }) {
         };
 
         try {
-        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Aulas", {
+        const res = await apiFetch("/Aulas", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(nuevaAula),

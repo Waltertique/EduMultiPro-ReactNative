@@ -9,6 +9,8 @@ import Footer from '../footer';
 import Desplegable from '../Desplegable';
 import colors from '../colors';
 
+import { apiFetch } from "../api"; // 👈 importa tu helper
+
 export default function Jornada({ navigation }) {
 
     const [page, setPage] = React.useState(0);
@@ -26,7 +28,7 @@ export default function Jornada({ navigation }) {
     // ✅ Obtener jornadas
     const obtenerJornadas = async () => {
         try {
-        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Jornadas");
+        const res = await apiFetch("/Jornadas");
         const data = await res.json();
         setJornadas(data);
         } catch (error) {
@@ -46,7 +48,7 @@ export default function Jornada({ navigation }) {
         }
 
         try {
-        const res = await fetch("http://192.168.0.3:3000/api/edumultipro/Jornadas", {
+        const res = await apiFetch("/Jornadas", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -69,7 +71,7 @@ export default function Jornada({ navigation }) {
         if (!jornadaSeleccionada) return;
 
         try {
-        const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Jornadas/${jornadaSeleccionada.ID}`, {
+        const res = await apiFetch(`/Jornadas/${jornadaSeleccionada.ID}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -95,7 +97,7 @@ export default function Jornada({ navigation }) {
             text: "Eliminar",
             onPress: async () => {
             try {
-                const res = await fetch(`http://192.168.0.3:3000/api/edumultipro/Jornadas/${id}`, {
+                const res = await apiFetch(`/Jornadas/${id}`, {
                 method: "DELETE",
                 });
 

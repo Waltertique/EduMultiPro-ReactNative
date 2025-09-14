@@ -10,6 +10,9 @@ import Footer from '../footer';
 import Desplegable from '../Desplegable';
 import colors from '../colors';
 
+import { apiFetch } from "../api"; // 👈 importa tu helper
+import { STATIC_URL } from "../api"; // 👈 importa aquí
+
 export default function VerUsuario({ route, navigation }) {
 
     const { id } = route.params;
@@ -22,7 +25,7 @@ export default function VerUsuario({ route, navigation }) {
 
     // 👉 Cargar usuario + roles + documentos
     useEffect(() => {
-        fetch(`http://192.168.0.3:3000/api/edumultipro/verUsuario/${id}`)
+        apiFetch(`/verUsuario/${id}`)
         .then(res => res.json())
         .then(data => {
             setUsuario({
@@ -100,7 +103,7 @@ export default function VerUsuario({ route, navigation }) {
                 });
             }
 
-            const res = await fetch("http://192.168.0.3:3000/api/edumultipro/actualizarUsuario", {
+            const res = await apiFetch("/actualizarUsuario", {
                 method: "POST",
                 body: formData
             });
@@ -112,7 +115,7 @@ export default function VerUsuario({ route, navigation }) {
                 setMostrarFormulario(false);
 
                 // 🔄 Recargar usuario actualizado
-                const updatedUserRes = await fetch(`http://192.168.0.3:3000/api/edumultipro/verUsuario/${id}`);
+                const updatedUserRes = await apiFetch(`/verUsuario/${id}`);
                 const updatedData = await updatedUserRes.json();
                 setUsuario({
                     ...updatedData.usuario,
@@ -213,7 +216,7 @@ export default function VerUsuario({ route, navigation }) {
                         <Text style={styles.textoInfoTitle}> Foto:</Text>
                         {usuario.RutaFoto && (
                         <Image
-                            source={{ uri: `http://192.168.0.4:3000/imagenes/${usuario.RutaFoto}` }}
+                            source={{ uri: `${STATIC_URL}/imagenes/${usuario.RutaFoto}` }}
                             style={{ width: 100, height: 100, borderRadius: 50 }}
                         />
                         )}
