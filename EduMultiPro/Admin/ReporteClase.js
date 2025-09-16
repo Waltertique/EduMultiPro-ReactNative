@@ -1,50 +1,60 @@
-import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-
-import { Picker } from "@react-native-picker/picker"; //sirve para hacer los select
-
 import * as React from 'react';
 import { DataTable } from 'react-native-paper';
 
 import Encabezado from '../Encabezado';
 import Footer from '../footer';
 import Desplegable from '../Desplegable';
-import colors from '../colors'; // 👈 archivo donde guardamos las variables
-
-import { apiFetch } from "../api"; // 👈 importa tu helper
+import colors from '../colors';
+import { apiFetch } from "../api";
 
 export default function ReporteClase({ navigation }) {
 
     const [page, setPage] = React.useState(0);
     const itemsPerPage = 10;
     const [search, setSearch] = React.useState('');
+    const [loading, setLoading] = React.useState(true);
 
-    // Datos estáticos de ejemplo
-    const data = [
-        { id: '1', Nombre: 'Aula 203', Materia: 'ingles', Curso: '203', Profesor: 'juan', CantidadUsuario: '4', CantidadAnuncio: '1', CantidadComentario: '3', CantidadTrabajo: '2' },
-        { id: '2', Nombre: 'Aula 203', Materia: 'ingles', Curso: '203', Profesor: 'juan', CantidadUsuario: '4', CantidadAnuncio: '1', CantidadComentario: '3', CantidadTrabajo: '2' },
-        { id: '3', Nombre: 'Aula 203', Materia: 'ingles', Curso: '203', Profesor: 'juan', CantidadUsuario: '4', CantidadAnuncio: '1', CantidadComentario: '3', CantidadTrabajo: '2' },
-        { id: '4', Nombre: 'Aula 203', Materia: 'ingles', Curso: '203', Profesor: 'juan', CantidadUsuario: '4', CantidadAnuncio: '1', CantidadComentario: '3', CantidadTrabajo: '2' },
-        { id: '5', Nombre: 'Aula 203', Materia: 'ingles', Curso: '203', Profesor: 'juan', CantidadUsuario: '4', CantidadAnuncio: '1', CantidadComentario: '3', CantidadTrabajo: '2' },
-        { id: '6', Nombre: 'Aula 203', Materia: 'ingles', Curso: '203', Profesor: 'juan', CantidadUsuario: '4', CantidadAnuncio: '1', CantidadComentario: '3', CantidadTrabajo: '2' },
-    ];
+    const [totalAulas, setTotalAulas] = React.useState(0);
+    const [aulas, setAulas] = React.useState([]);
 
-    // Filtrado por búsqueda
-    const filteredData = data.filter(
+    // 🔹 Consumir API al montar
+    React.useEffect(() => {
+        apiFetch("/reportes/aulas")
+        .then(res => {
+            if (!res.ok) throw new Error("Error cargando aulas");
+            return res.json();
+        })
+        .then(data => {
+            setTotalAulas(data.totalAulas);
+
+            // 👇 Ordenar por ID antes de guardar en el estado
+            const aulasOrdenadas = data.aulas.sort((a, b) => a.aula_id - b.aula_id);
+            setAulas(aulasOrdenadas);
+        })
+        .catch(err => {
+            console.error(err);
+            Alert.alert("Error", "No se pudieron cargar las aulas");
+        })
+        .finally(() => setLoading(false));
+    }, []);
+
+    // 🔹 Filtrado por búsqueda
+    const filteredData = aulas.filter(
         (item) =>
-        item.id.includes(search) ||
-        item.Nombre.toLowerCase().includes(search.toLowerCase()) ||
-        item.Materia.toLowerCase().includes(search.toLowerCase()) ||
-        item.Curso.toLowerCase().includes(search.toLowerCase()) ||
-        item.Profesor.toLowerCase().includes(search.toLowerCase()) ||
-        item.CantidadUsuario.toLowerCase().includes(search.toLowerCase()) ||
-        item.CantidadAnuncio.toLowerCase().includes(search.toLowerCase()) ||
-        item.CantidadComentario.toLowerCase().includes(search.toLowerCase()) ||
-        item.CantidadTrabajo.toLowerCase().includes(search.toLowerCase())
+        item.aula_id.toString().includes(search) ||
+        item.Aula_Nombre.toLowerCase().includes(search.toLowerCase()) ||
+        item.Materia_Nombre.toLowerCase().includes(search.toLowerCase()) ||
+        item.curso_jornada.toLowerCase().includes(search.toLowerCase()) ||
+        item.profesor.toLowerCase().includes(search.toLowerCase()) ||
+        item.total_usuarios.toString().includes(search) ||
+        item.total_anuncios.toString().includes(search) ||
+        item.total_comentarios.toString().includes(search) ||
+        item.total_trabajos.toString().includes(search)
     );
 
-    // Paginación
+    // 🔹 Paginación
     const from = page * itemsPerPage;
     const to = Math.min((page + 1) * itemsPerPage, filteredData.length);
 
@@ -84,11 +94,13 @@ export default function ReporteClase({ navigation }) {
                 <View style={styles.tituloUsuario}>
                     <Text style={styles.titleUsuario}>Aulas</Text>
                     
-                    <Text style={styles.titleUsuario}>Aulas Totales: 16</Text>
+                    <Text style={styles.titleUsuario}>Aulas Totales: {totalAulas}</Text>
                 </View>
 
                 <View style={styles.contenedorTabla}>
-                    
+                    {loading ? (
+                        <ActivityIndicator size="large" color={colors.azulPrimario} />
+                    ) : (
                     <View style={styles.container}>
                         {/* Barra de búsqueda */}
                         <TextInput
@@ -103,7 +115,7 @@ export default function ReporteClase({ navigation }) {
 
                         {/* Mostrar cantidad de registros */}
                         <Text style={styles.infoRegistros}>
-                            Mostrando {from + 1}-{to} de {filteredData.length} registros
+                            Mostrando {filteredData.length > 0 ? from + 1 : 0}-{to} de {filteredData.length} registros
                         </Text>
 
                         {/* Scroll horizontal para columnas grandes */}
@@ -121,34 +133,34 @@ export default function ReporteClase({ navigation }) {
                                 <DataTable.Title style={styles.tablaHead}>CantidadTrabajo</DataTable.Title>
                             </DataTable.Header>
                         
-                            {filteredData.slice(from, to).map((trabajo, index) => (
+                            {filteredData.slice(from, to).map((aula, index) => (
                                 <DataTable.Row key={index}>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{trabajo.id}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{trabajo.Nombre}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{trabajo.Materia}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{trabajo.Curso}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{trabajo.Profesor}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{trabajo.CantidadUsuario}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{trabajo.CantidadAnuncio}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{trabajo.CantidadComentario}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{trabajo.CantidadTrabajo}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{aula.aula_id}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{aula.Aula_Nombre}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{aula.Materia_Nombre}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{aula.curso_jornada}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{aula.profesor}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{aula.total_usuarios}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{aula.total_anuncios}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{aula.total_comentarios}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{aula.total_trabajos}</Text></DataTable.Cell>
                                 </DataTable.Row>
                             ))}
                         
                         
                             {/* Paginación */}
                             <DataTable.Pagination
-                                page={page}
-                                numberOfPages={Math.ceil(filteredData.length / itemsPerPage)}
-                                onPageChange={(p) => setPage(p)}
-                                label={`${from + 1}-${to} de ${filteredData.length}`}
-                                numberOfItemsPerPage={itemsPerPage}
-                                showFastPagination
+                            page={page}
+                            numberOfPages={Math.ceil(filteredData.length / itemsPerPage)}
+                            onPageChange={(p) => setPage(p)}
+                            label={`${from + 1}-${to} de ${filteredData.length}`}
+                            numberOfItemsPerPage={itemsPerPage}
+                            showFastPagination
                             />
                             </DataTable>
                         </ScrollView>
                     </View>
-
+                    )}
                 </View>
 
         </View>

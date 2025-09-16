@@ -16,57 +16,87 @@ import { apiFetch } from "../api"; // 👈 importa tu helper
 
 export default function Reporte({ navigation }) {
 
-    const [page, setPage] = React.useState(0);
-    const itemsPerPage = 5;
-    const [search, setSearch] = React.useState('');
+    const [totales, setTotales] = React.useState({
+    totalUsuarios: 0,
+    totalCoordinadores: 0,
+    totalProfesores: 0,
+    totalAlumnos: 0,
+    });
 
-    // Datos estáticos de ejemplo
-    const data2 = [
-        { id: '1', pNombre: 'juan', pApellido: 'perez', Curso: '103', Rol: 'Alumno' },
-    ];
+    React.useEffect(() => {
+    apiFetch("/reportes/usuarios-totales")
+        .then((res) => res.json())
+        .then((data) => setTotales(data))
+        .catch((err) => console.error("❌ Error al cargar totales:", err));
+    }, []);
 
-    // Filtrado por búsqueda
-    const filteredData2 = data2.filter(
-        (item) =>
-        item.id.includes(search) ||
-        item.pNombre.toLowerCase().includes(search.toLowerCase()) ||
-        item.pApellido.toLowerCase().includes(search.toLowerCase()) ||
-        item.Curso.toLowerCase().includes(search.toLowerCase()) ||
-        item.Rol.toLowerCase().includes(search.toLowerCase()) 
-    );
+    const [cursosData, setCursosData] = React.useState([]);
 
-    // Datos estáticos de ejemplo
-    const data1 = [
-        { id: '1', Total: '11'},
-    ];
-    const filteredData1 = data1.filter(
-        (item) =>
-        item.id.includes(search) ||
-        item.Total.toLowerCase().includes(search.toLowerCase()) 
-    );
-    
-    const data = [
-        { id: '1', Materias: 'Materia1', Grado: 'Grado1', Jornada: 'Jornada1', Cantidad: '3' },
-        { id: '2', Materias: 'Materia1', Grado: 'Grado1', Jornada: 'Jornada1', Cantidad: '3' },
-        { id: '3', Materias: 'Materia1', Grado: 'Grado1', Jornada: 'Jornada1', Cantidad: '3' },
-        { id: '4', Materias: 'Materia1', Grado: 'Grado1', Jornada: 'Jornada1', Cantidad: '3' },
-        { id: '5', Materias: 'Materia1', Grado: 'Grado1', Jornada: 'Jornada1', Cantidad: '3' },
-        { id: '6', Materias: 'Materia1', Grado: 'Grado1', Jornada: 'Jornada1', Cantidad: '3' },
-    ];
+    // useEffect: guardamos el array tal cual
+    React.useEffect(() => {
+    apiFetch("/reportes/cursos")
+        .then((res) => res.json())
+        .then((data) => {
+        setCursosData(Array.isArray(data) ? data : []);
+        })
+        .catch((err) => console.error("❌ Error al cargar cursos:", err));
+    }, []);
 
-    // Filtrado por búsqueda
-    const filteredData = data.filter(
-        (item) =>
-        item.id.includes(search) ||
-        item.Materias.toLowerCase().includes(search.toLowerCase()) ||
-        item.Grado.toLowerCase().includes(search.toLowerCase()) ||
-        item.Jornada.toLowerCase().includes(search.toLowerCase()) ||
-        item.Cantidad.toLowerCase().includes(search.toLowerCase())
-    );
+    // Estado para estructura
+    const [estructura, setEstructura] = React.useState({
+    total_materias: 0,
+    total_grados: 0,
+    total_jornadas: 0,
+    });
 
-    // Paginación
-    const from = page * itemsPerPage;
-    const to = Math.min((page + 1) * itemsPerPage, filteredData.length);
+    React.useEffect(() => {
+    apiFetch("/reportes/estructura")
+        .then((res) => res.json())
+        .then((data) => setEstructura(data))
+        .catch((err) => console.error("❌ Error al cargar estructura:", err));
+    }, []);
+
+    const [materiasAulas, setMateriasAulas] = React.useState([]);
+    const [gradosCursos, setGradosCursos] = React.useState([]);
+    const [jornadasCursos, setJornadasCursos] = React.useState([]);
+
+    React.useEffect(() => {
+    apiFetch("/reportes/materias-aulas")
+        .then((res) => res.json())
+        .then(setMateriasAulas);
+
+    apiFetch("/reportes/grados-cursos")
+        .then((res) => res.json())
+        .then(setGradosCursos);
+
+    apiFetch("/reportes/jornadas-cursos")
+        .then((res) => res.json())
+        .then(setJornadasCursos);
+    }, []);
+
+    const [idBusqueda, setIdBusqueda] = React.useState("");
+    const [usuarioEncontrado, setUsuarioEncontrado] = React.useState(null);
+
+    const buscarUsuario = () => {
+    if (!idBusqueda) return;
+
+    apiFetch(`/buscar-usuario/${idBusqueda}`)
+        .then((res) => {
+        if (!res.ok) throw new Error("Usuario no encontrado");
+        return res.json();
+        })
+        .then(setUsuarioEncontrado)
+        .catch((err) => {
+        console.error(err);
+        setUsuarioEncontrado(null);
+        Alert.alert("Error", "Usuario no encontrado");
+        });
+    };
+
+    const cerrarTabla = () => {
+    setUsuarioEncontrado(null);
+    setIdBusqueda("");
+    };
 
   return (
     <View style={styles.contenedor}>
@@ -107,13 +137,19 @@ export default function Reporte({ navigation }) {
                 <Text style={styles.textTitle}>Usuarios</Text>
 
                 <View style={styles.ingresoComentario}>
-                    <TextInput style={styles.datosComentar} placeholder='ID'/>
-                    <TouchableOpacity style={styles.botonComentar}>
+                    <TextInput
+                    style={styles.datosComentar}
+                    placeholder="ID"
+                    value={idBusqueda}
+                    onChangeText={setIdBusqueda}
+                    />
+                    <TouchableOpacity style={styles.botonComentar} onPress={buscarUsuario}>
                         <Text style={styles.textoCrearAula}>Buscar</Text>
                     </TouchableOpacity>
                 </View>
             </View>
 
+            {usuarioEncontrado && usuarioEncontrado.ID && (
                 <View style={styles.contenedorTabla1}>
                     <View style={styles.container}>
 
@@ -129,40 +165,40 @@ export default function Reporte({ navigation }) {
                                 <DataTable.Title style={styles.tablaHead1}><Text style={styles.textTitle2}>Informacion</Text></DataTable.Title>
                                 <DataTable.Title style={styles.tablaHead1}><Text style={styles.textTitle2}>Cerrar</Text></DataTable.Title>
                             </DataTable.Header>
-                        
-                            {filteredData2.slice(from, to).map((tabla, index) => (
-                                <DataTable.Row key={index}>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{tabla.id}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{tabla.pNombre}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{tabla.pApellido}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{tabla.Curso}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{tabla.Rol}</Text></DataTable.Cell>
+
+                                <DataTable.Row key={usuarioEncontrado.ID}>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuarioEncontrado.ID}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuarioEncontrado.Primer_Nombre}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuarioEncontrado.Primer_Apellido}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuarioEncontrado.Curso_Jornada}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuarioEncontrado.Rol}</Text></DataTable.Cell>
 
                                 <DataTable.Cell style={styles.tablaBody}>
-                                    <TouchableOpacity style={styles.botonAccion}>
+                                    <TouchableOpacity style={styles.botonAccion} onPress={() => navigation.navigate('VerUsuario', { id: usuarioEncontrado.ID })}>
                                         <FontAwesome name="info" size={16} color="#fff" />
                                     </TouchableOpacity>
                                 </DataTable.Cell>
 
                                 <DataTable.Cell style={styles.tablaBody}>
-                                    <TouchableOpacity style={styles.botonEliminar}>
+                                    <TouchableOpacity style={styles.botonEliminar} onPress={cerrarTabla}>
                                         <FontAwesome name="close" size={16} color="#fff" />
                                     </TouchableOpacity>
                                 </DataTable.Cell>
                                 </DataTable.Row>
-                            ))}
+
                             </DataTable>
                         </ScrollView>
                     </View>
                 </View>
+            )}
 
             <View style={styles.infoTitle}>
                 <Text style={styles.textTitle2}>Total Usuarios</Text>
                 <Text style={styles.textTitle2}>Total Coordinadores</Text>
             </View>
             <View style={styles.infoTotal}>
-                <Text>41</Text>
-                <Text>2</Text>
+                <Text>{totales.totalUsuarios}</Text>
+                <Text>{totales.totalCoordinadores}</Text>
             </View>
 
             <View style={styles.infoTitle}>
@@ -170,8 +206,8 @@ export default function Reporte({ navigation }) {
                 <Text style={styles.textTitle2}>Total Alumnos</Text>
             </View>
             <View style={styles.infoTotal}>
-                <Text>8</Text>
-                <Text>29</Text>
+                <Text>{totales.totalProfesores}</Text>
+                <Text>{totales.totalAlumnos}</Text>
             </View>
             
             {/* Informacion del total de informacion de cursos */}
@@ -183,26 +219,41 @@ export default function Reporte({ navigation }) {
                 <View style={styles.contenedorTabla1}>
                     
                     <View style={styles.container}>
-
-                        {/* Scroll horizontal para columnas grandes */}
                         <ScrollView horizontal>
-                            <DataTable>
+                        <DataTable>
+                            {/* Header dinámico: una columna por cada item */}
                             <DataTable.Header>
-                                <DataTable.Title style={styles.tablaHead}><Text style={styles.textTitle2}>Total Cursos</Text></DataTable.Title>
-                                <DataTable.Title style={styles.tablaHead}><Text style={styles.textTitle2}>En Jornada Mañana</Text></DataTable.Title>
-                                <DataTable.Title style={styles.tablaHead}><Text style={styles.textTitle2}>En Jornada Tarde</Text></DataTable.Title>
-                                <DataTable.Title style={styles.tablaHead}><Text style={styles.textTitle2}>En Jornada Mixta</Text></DataTable.Title>
+                            {cursosData.length === 0 ? (
+                                <DataTable.Title style={styles.tablaHead}><Text style={styles.textTitle2}>Cargando...</Text></DataTable.Title>
+                            ) : (
+                                cursosData.map((item, idx) => {
+                                const name = item.Jornada ?? item.Jornada_Nombre ?? "Jornada";
+                                return (
+                                    <DataTable.Title key={idx} style={styles.tablaHead}>
+                                    <Text style={styles.textTitle2}>
+                                        {name === "Total Cursos" ? "Total Cursos" : `En Jornada ${name}`}
+                                    </Text>
+                                    </DataTable.Title>
+                                );
+                                })
+                            )}
                             </DataTable.Header>
-                        
-                            {filteredData1.slice(from, to).map((tabla, index) => (
-                                <DataTable.Row key={index}>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{tabla.Total}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{tabla.Total}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{tabla.Total}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{tabla.Total}</Text></DataTable.Cell>
-                                </DataTable.Row>
-                            ))}
-                            </DataTable>
+
+                            {/* Fila con los totales (una celda por item) */}
+                            {cursosData.length > 0 && (
+                            <DataTable.Row>
+                                {cursosData.map((item, idx) => {
+                                const total = item.Total ?? item.total ?? 0;
+                                return (
+                                    <DataTable.Cell key={idx} style={styles.tablaBody}>
+                                    <Text numberOfLines={1} ellipsizeMode="tail">{String(total)}</Text>
+                                    </DataTable.Cell>
+                                );
+                                })}
+                            </DataTable.Row>
+                            )}
+
+                        </DataTable>
                         </ScrollView>
                     </View>
                 </View>
@@ -219,9 +270,9 @@ export default function Reporte({ navigation }) {
                 <Text style={styles.textTitle2}>Total Jornadas</Text>
             </View>
             <View style={styles.infoTotal}>
-                <Text>10</Text>
-                <Text>11</Text>
-                <Text>3</Text>
+                <Text>{estructura.total_materias}</Text>
+                <Text>{estructura.total_grados}</Text>
+                <Text>{estructura.total_jornadas}</Text>
             </View>
             
             {/* Informacion de las materias y las aulas que las usan */}
@@ -243,7 +294,7 @@ export default function Reporte({ navigation }) {
                         
                         {/* Mostrar cantidad de registros */}
                         <Text style={styles.infoRegistros}>
-                            Mostrando {from + 1}-{to} de {filteredData.length} registros
+                             Mostrando {materiasAulas.length} registros
                         </Text>
 
                         {/* Scroll horizontal para columnas grandes */}
@@ -254,23 +305,14 @@ export default function Reporte({ navigation }) {
                                 <DataTable.Title style={styles.tablaHead}><Text style={styles.textTitle2}>Aulas que las usan</Text></DataTable.Title>
                             </DataTable.Header>
                         
-                            {filteredData.slice(from, to).map((tabla, index) => (
+                            {materiasAulas.map((m, index) => (
                                 <DataTable.Row key={index}>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{tabla.Materias}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{tabla.Cantidad}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{m.Materia_Nombre}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{m.total_aulas}</Text></DataTable.Cell>
                                 </DataTable.Row>
                             ))}
                         
                         
-                            {/* Paginación */}
-                            <DataTable.Pagination
-                                page={page}
-                                numberOfPages={Math.ceil(filteredData.length / itemsPerPage)}
-                                onPageChange={(p) => setPage(p)}
-                                label={`${from + 1}-${to} de ${filteredData.length}`}
-                                numberOfItemsPerPage={itemsPerPage}
-                                showFastPagination
-                            />
                             </DataTable>
                         </ScrollView>
                     </View>
@@ -294,7 +336,7 @@ export default function Reporte({ navigation }) {
 
                         {/* Mostrar cantidad de registros */}
                         <Text style={styles.infoRegistros}>
-                            Mostrando {from + 1}-{to} de {filteredData.length} registros
+                             Mostrando {gradosCursos.length} registros
                         </Text>
 
                         {/* Scroll horizontal para columnas grandes */}
@@ -305,23 +347,14 @@ export default function Reporte({ navigation }) {
                                 <DataTable.Title style={styles.tablaHead}><Text style={styles.textTitle2}>Cursos que los usan</Text></DataTable.Title>
                             </DataTable.Header>
                         
-                            {filteredData.slice(from, to).map((tabla, index) => (
+                            {gradosCursos.map((g, index) => (
                                 <DataTable.Row key={index}>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{tabla.Grado}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{tabla.Cantidad}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{g.Grado_Nombre}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{g.total_cursos}</Text></DataTable.Cell>
                                 </DataTable.Row>
                             ))}
                         
                         
-                            {/* Paginación */}
-                            <DataTable.Pagination
-                                page={page}
-                                numberOfPages={Math.ceil(filteredData.length / itemsPerPage)}
-                                onPageChange={(p) => setPage(p)}
-                                label={`${from + 1}-${to} de ${filteredData.length}`}
-                                numberOfItemsPerPage={itemsPerPage}
-                                showFastPagination
-                            />
                             </DataTable>
                         </ScrollView>
                     </View>
@@ -347,7 +380,7 @@ export default function Reporte({ navigation }) {
 
                         {/* Mostrar cantidad de registros */}
                         <Text style={styles.infoRegistros}>
-                            Mostrando {from + 1}-{to} de {filteredData.length} registros
+                            Mostrando {jornadasCursos.length} registros
                         </Text>
 
                         {/* Scroll horizontal para columnas grandes */}
@@ -358,23 +391,12 @@ export default function Reporte({ navigation }) {
                                 <DataTable.Title style={styles.tablaHead}><Text style={styles.textTitle2}>Cursos que las usan</Text></DataTable.Title>
                             </DataTable.Header>
                         
-                            {filteredData.slice(from, to).map((tabla, index) => (
+                            {jornadasCursos.map((j, index) => (
                                 <DataTable.Row key={index}>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{tabla.Jornada}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{tabla.Cantidad}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{j.Jornada_Nombre}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{j.total_cursos}</Text></DataTable.Cell>
                                 </DataTable.Row>
                             ))}
-                        
-                        
-                            {/* Paginación */}
-                            <DataTable.Pagination
-                                page={page}
-                                numberOfPages={Math.ceil(filteredData.length / itemsPerPage)}
-                                onPageChange={(p) => setPage(p)}
-                                label={`${from + 1}-${to} de ${filteredData.length}`}
-                                numberOfItemsPerPage={itemsPerPage}
-                                showFastPagination
-                            />
                             </DataTable>
                         </ScrollView>
                     </View>

@@ -13,11 +13,12 @@ Comandos que se instala en la carpeta del frontend:
 ‎-npm install @react-native-picker/picker
 ‎-expo install expo@53.0.22 react-native-safe-area-context@5.4.0 react-native-screens@~4.11.1
 ‎-npx expo install @react-native-async-storage/async-storage
-‎-expo install expo@53.0.22 react-native-safe-area-context@5.4.0 react-native-screens@~4.11.1
 -npm install react-native-image-picker
 -npm install @react-native-community/datetimepicker
 -npx expo run:android
 -npm install @react-native-community/datetimepicker@8.4.1
+-npx expo install expo@~54.0.0
+-npx expo install @expo/metro-runtime @react-native-async-storage/async-storage @react-native-community/datetimepicker expo-linear-gradient expo-status-bar react react-dom react-native react-native-safe-area-context react-native-screens react-native-web
 
 Comandos que se instala en la carpeta del Backend:
 

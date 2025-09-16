@@ -1,18 +1,13 @@
-import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-
-import { Picker } from "@react-native-picker/picker"; //sirve para hacer los select
-
 import * as React from 'react';
 import { DataTable } from 'react-native-paper';
 
 import Encabezado from '../Encabezado';
 import Footer from '../footer';
 import Desplegable from '../Desplegable';
-import colors from '../colors'; // 👈 archivo donde guardamos las variables
-
-import { apiFetch } from "../api"; // 👈 importa tu helper
+import colors from '../colors';
+import { apiFetch } from "../api";
 
 export default function ReporteAgenda({ navigation }) {
 
@@ -20,40 +15,103 @@ export default function ReporteAgenda({ navigation }) {
     const itemsPerPage = 10;
     const [search, setSearch] = React.useState('');
 
-    // Datos estáticos de ejemplo
-    const data1 = [
-        { id: '1', Total: '11'},
-    ];
-    const filteredData1 = data1.filter(
-        (item) =>
-        item.id.includes(search) ||
-        item.Total.toLowerCase().includes(search.toLowerCase()) 
-    );
+    // Estados que vienen del backend
+    const [totales, setTotales] = React.useState({});
+    const [totalNoticias, setTotalNoticias] = React.useState(0);
+    const [cursosConHorario, setCursosConHorario] = React.useState([]);
+    const [cursosSinHorario, setCursosSinHorario] = React.useState([]);
+    const [profesConHorario, setProfesConHorario] = React.useState([]);
+    const [profesSinHorario, setProfesSinHorario] = React.useState([]);
 
-    // Datos estáticos de ejemplo
-    const data = [
-        { id: '1', CursoConHorario: '203', CursoSinHorario: '402', ProfesorConHorario: 'juan', ProfesorSinHorario: 'pedro' },
-        { id: '2', CursoConHorario: '203', CursoSinHorario: '402', ProfesorConHorario: 'juan', ProfesorSinHorario: 'pedro' },
-        { id: '3', CursoConHorario: '203', CursoSinHorario: '402', ProfesorConHorario: 'juan', ProfesorSinHorario: 'pedro' },
-        { id: '4', CursoConHorario: '203', CursoSinHorario: '402', ProfesorConHorario: 'juan', ProfesorSinHorario: 'pedro' },
-        { id: '5', CursoConHorario: '203', CursoSinHorario: '402', ProfesorConHorario: 'juan', ProfesorSinHorario: 'pedro' },
-        { id: '6', CursoConHorario: '203', CursoSinHorario: '402', ProfesorConHorario: 'juan', ProfesorSinHorario: 'pedro' },
-    ];
+    React.useEffect(() => {
+        apiFetch("/reportes/horarios-totales")
+        .then(res => res.json())
+        .then(setTotales)
+        .catch(err => console.error("❌ Error totales:", err));
 
-    // Filtrado por búsqueda
-    const filteredData = data.filter(
-        (item) =>
-        item.id.includes(search) ||
-        item.CursoConHorario.toLowerCase().includes(search.toLowerCase()) ||
-        item.CursoSinHorario.toLowerCase().includes(search.toLowerCase()) ||
-        item.ProfesorConHorario.toLowerCase().includes(search.toLowerCase()) ||
-        item.ProfesorSinHorario.toLowerCase().includes(search.toLowerCase()) 
-        
-    );
+        apiFetch("/reportes/noticias-totales")
+        .then(res => res.json())
+        .then(data => setTotalNoticias(data.total_noticias))
+        .catch(err => console.error("❌ Error noticias:", err));
 
-    // Paginación
+        apiFetch("/reportes/cursos-horarios")
+        .then(res => res.json())
+        .then(data => {
+            setCursosConHorario(data.conHorario || []);
+            setCursosSinHorario(data.sinHorario || []);
+        })
+        .catch(err => console.error("❌ Error cursos:", err));
+
+        apiFetch("/reportes/profesores-horarios")
+        .then(res => res.json())
+        .then(data => {
+            setProfesConHorario(data.conHorario || []);
+            setProfesSinHorario(data.sinHorario || []);
+        })
+        .catch(err => console.error("❌ Error profes:", err));
+    }, []);
+
+    // Emparejar arrays por índice para renderizar filas (columna izquierda = con, derecha = sin)
+    const pairedCursos = React.useMemo(() => {
+        const max = Math.max(cursosConHorario.length, cursosSinHorario.length);
+        const arr = [];
+        for (let i = 0; i < max; i++) {
+        arr.push({
+            con: cursosConHorario[i] || null,
+            sin: cursosSinHorario[i] || null,
+        });
+        }
+        return arr;
+    }, [cursosConHorario, cursosSinHorario]);
+
+    const pairedProfes = React.useMemo(() => {
+        const max = Math.max(profesConHorario.length, profesSinHorario.length);
+        const arr = [];
+        for (let i = 0; i < max; i++) {
+        arr.push({
+            con: profesConHorario[i] || null,
+            sin: profesSinHorario[i] || null,
+        });
+        }
+        return arr;
+    }, [profesConHorario, profesSinHorario]);
+
+    // Filtrado (buscar en ambas columnas)
+    const filteredPairedCursos = React.useMemo(() => {
+        const q = search.trim().toLowerCase();
+        if (!q) return pairedCursos;
+        return pairedCursos.filter(({ con, sin }) => {
+        const matchCon =
+            con &&
+            ((con.curso || '').toLowerCase().includes(q) ||
+            (con.jornada || '').toLowerCase().includes(q));
+        const matchSin =
+            sin &&
+            ((sin.curso || '').toLowerCase().includes(q) ||
+            (sin.jornada || '').toLowerCase().includes(q));
+        return matchCon || matchSin;
+        });
+    }, [pairedCursos, search]);
+
+    const filteredPairedProfes = React.useMemo(() => {
+        const q = search.trim().toLowerCase();
+        if (!q) return pairedProfes;
+        return pairedProfes.filter(({ con, sin }) => {
+        const matchCon =
+            con &&
+            (((con.nombre || '') + ' ' + (con.apellido || '')).toLowerCase().includes(q));
+        const matchSin =
+            sin &&
+            (((sin.nombre || '') + ' ' + (sin.apellido || '')).toLowerCase().includes(q));
+        return matchCon || matchSin;
+        });
+    }, [pairedProfes, search]);
+
+    // Paginación por filas emparejadas (cursos)
+    const totalRowsCursos = filteredPairedCursos.length;
     const from = page * itemsPerPage;
-    const to = Math.min((page + 1) * itemsPerPage, filteredData.length);
+    const to = Math.min((page + 1) * itemsPerPage, totalRowsCursos);
+    const numberOfPages = Math.max(1, Math.ceil(totalRowsCursos / itemsPerPage));
 
   return (
     <View style={styles.contenedor}>
@@ -107,15 +165,13 @@ export default function ReporteAgenda({ navigation }) {
                                 <DataTable.Title style={styles.tablaHead1}><Text style={styles.textTitle2}>Profesores sin Horario</Text></DataTable.Title>
                             </DataTable.Header>
                         
-                            {filteredData1.slice(from, to).map((tabla, index) => (
-                                <DataTable.Row key={index}>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{tabla.Total}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{tabla.Total}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{tabla.Total}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{tabla.Total}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{tabla.Total}</Text></DataTable.Cell>
+                                <DataTable.Row>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{totales.total_horarios ?? '-'}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{totales.cursos_con_horario ?? '-'}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{totales.cursos_sin_horario ?? '-'}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{totales.profesores_con_horario ?? '-'}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{totales.profesores_sin_horario ?? '-'}</Text></DataTable.Cell>
                                 </DataTable.Row>
-                            ))}
                             </DataTable>
                         </ScrollView>
                     </View>
@@ -141,7 +197,7 @@ export default function ReporteAgenda({ navigation }) {
 
                         {/* Mostrar cantidad de registros */}
                         <Text style={styles.infoRegistros}>
-                            Mostrando {from + 1}-{to} de {filteredData.length} registros
+                            Mostrando {totalRowsCursos ? (from + 1) : 0}-{to} de {totalRowsCursos} registros
                         </Text>
 
                         {/* Scroll horizontal para columnas grandes */}
@@ -152,10 +208,10 @@ export default function ReporteAgenda({ navigation }) {
                                 <DataTable.Title style={styles.tablaHead}>Cursos sin Horario</DataTable.Title>
                             </DataTable.Header>
                         
-                            {filteredData.slice(from, to).map((curso, index) => (
-                                <DataTable.Row key={index}>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{curso.CursoConHorario}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{curso.CursoSinHorario}</Text></DataTable.Cell>
+                            {filteredPairedCursos.slice(from, to).map((row, i) => (
+                                <DataTable.Row key={i}>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{row.con ? `${row.con.curso} ${row.con.jornada ? `- ${row.con.jornada}` : ''}` : ''}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{row.sin ? `${row.sin.curso} ${row.sin.jornada ? `- ${row.sin.jornada}` : ''}` : ''}</Text></DataTable.Cell>
                                 </DataTable.Row>
                             ))}
                         
@@ -163,9 +219,9 @@ export default function ReporteAgenda({ navigation }) {
                             {/* Paginación */}
                             <DataTable.Pagination
                                 page={page}
-                                numberOfPages={Math.ceil(filteredData.length / itemsPerPage)}
-                                onPageChange={(p) => setPage(p)}
-                                label={`${from + 1}-${to} de ${filteredData.length}`}
+                                numberOfPages={numberOfPages}
+                                onPageChange={setPage}
+                                label={ totalRowsCursos ? `${from + 1}-${to} de ${totalRowsCursos}` : '0-0 de 0' }
                                 numberOfItemsPerPage={itemsPerPage}
                                 showFastPagination
                             />
@@ -191,7 +247,7 @@ export default function ReporteAgenda({ navigation }) {
 
                         {/* Mostrar cantidad de registros */}
                         <Text style={styles.infoRegistros}>
-                            Mostrando {from + 1}-{to} de {filteredData.length} registros
+                            Mostrando {filteredPairedProfes.length} registros
                         </Text>
 
                         {/* Scroll horizontal para columnas grandes */}
@@ -202,10 +258,10 @@ export default function ReporteAgenda({ navigation }) {
                                 <DataTable.Title style={styles.tablaHead}>Profesores Sin Horario</DataTable.Title>
                             </DataTable.Header>
                         
-                            {filteredData.slice(from, to).map((profesor, index) => (
-                                <DataTable.Row key={index}>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{profesor.ProfesorConHorario}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{profesor.ProfesorSinHorario}</Text></DataTable.Cell>
+                            {filteredPairedProfes.map((row, i) => (
+                                <DataTable.Row key={i}>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{row.con ? `${row.con.nombre} ${row.con.apellido}` : ''}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{row.sin ? `${row.sin.nombre} ${row.sin.apellido}` : ''}</Text></DataTable.Cell>
                                 </DataTable.Row>
                             ))}
                         
@@ -213,9 +269,9 @@ export default function ReporteAgenda({ navigation }) {
                             {/* Paginación */}
                             <DataTable.Pagination
                                 page={page}
-                                numberOfPages={Math.ceil(filteredData.length / itemsPerPage)}
-                                onPageChange={(p) => setPage(p)}
-                                label={`${from + 1}-${to} de ${filteredData.length}`}
+                                numberOfPages={numberOfPages}
+                                onPageChange={setPage}
+                                label={ filteredPairedProfes ? `${from + 1}-${to} de ${filteredPairedProfes}` : '0-0 de 0' }
                                 numberOfItemsPerPage={itemsPerPage}
                                 showFastPagination
                             />
@@ -226,7 +282,7 @@ export default function ReporteAgenda({ navigation }) {
                 </View>
 
                 <View style={styles.tituloUsuario}>
-                    <Text style={styles.titleUsuario}>Noticias Totales: 6</Text>
+                    <Text style={styles.titleUsuario}>Noticias Totales: {totalNoticias}</Text>
                 </View>
 
         </View>
@@ -335,7 +391,7 @@ const styles = StyleSheet.create({
         width: 150, 
         borderWidth: 1, 
         borderColor: colors.azulPrimario
-    },
+    }
     // Fin tabla
 
 });
