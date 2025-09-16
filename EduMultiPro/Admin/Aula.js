@@ -207,7 +207,7 @@ export default function Aula({ navigation }) {
                             <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{aula.Profesor}</Text></DataTable.Cell>
 
                             <DataTable.Cell style={styles.tablaBody}>
-                                <TouchableOpacity style={styles.botonAccion} onPress={() => navigation.navigate('VerAula')}>
+                                <TouchableOpacity style={styles.botonAccion} onPress={() => navigation.navigate('VerAula', { id: aula.ID })}>
                                     <FontAwesome name="info" size={16} color="#fff" />
                                 </TouchableOpacity>
                             </DataTable.Cell>
