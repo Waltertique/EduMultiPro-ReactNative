@@ -1,45 +1,77 @@
-import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-
-import { Picker } from "@react-native-picker/picker"; //sirve para hacer los select
-
 import * as React from 'react';
 import { DataTable } from 'react-native-paper';
 
 import Encabezado from '../Encabezado';
 import Footer from '../footer';
 import Desplegable from '../Desplegable';
+import { apiFetch } from "../api";
 import colors from '../colors'; // 👈 archivo donde guardamos las variables
 
-import { apiFetch } from "../api"; // 👈 importa tu helper
+export default function Trabajo({ navigation, route }) {
 
-export default function Trabajo({ navigation }) {
-
+    const { id } = route.params; // id del aula
     const [page, setPage] = React.useState(0);
     const itemsPerPage = 10;
     const [search, setSearch] = React.useState('');
 
-    // Datos estáticos de ejemplo
-    const data = [
-        { id: '1', Titulo: 'Trabajo 1', Fecha: '23/45/5643' },
-        { id: '2', Titulo: 'Trabajo 2', Fecha: '23/45/5643' },
-        { id: '3', Titulo: 'Trabajo 3', Fecha: '23/45/5643' },
-        { id: '4', Titulo: 'Trabajo 4', Fecha: '23/45/5643' },
-        { id: '5', Titulo: 'Trabajo 5', Fecha: '23/45/5643' },
-        { id: '6', Titulo: 'Trabajo 6', Fecha: '23/45/5643' },
-    ];
+    const [trabajos, setTrabajos] = React.useState([]);
 
-    // Filtrado por búsqueda
-    const filteredData = data.filter(
+    // 🔹 Obtener trabajos del aula
+    React.useEffect(() => {
+        const obtenerTrabajos = async () => {
+        try {
+            const res = await apiFetch(`/Trabajos/Aula/${id}`);
+            const data = await res.json();
+            setTrabajos(data);
+        } catch (error) {
+            console.error("Error al obtener trabajos:", error);
+            Alert.alert("Error", "No se pudieron cargar los trabajos");
+        }
+        };
+        obtenerTrabajos();
+    }, [id]);
+
+    // 🔹 Filtrado por búsqueda
+    const filteredData = trabajos.filter(
         (item) =>
-        item.id.includes(search) ||
-        item.Titulo.toLowerCase().includes(search.toLowerCase()) ||
-        item.Fecha.toLowerCase().includes(search.toLowerCase())
+        item.Titulo_Trabajo.toLowerCase().includes(search.toLowerCase()) ||
+        item.Fecha_Trabajo.toLowerCase().includes(search.toLowerCase())
     );
 
-    // Paginación
+    // 🔹 Paginación
     const from = page * itemsPerPage;
     const to = Math.min((page + 1) * itemsPerPage, filteredData.length);
+
+    // 🔹 Eliminar trabajo
+    const eliminarTrabajo = async (trabajoId) => {
+        Alert.alert(
+        "Confirmar",
+        "¿Estás seguro de eliminar este trabajo?",
+        [
+            { text: "Cancelar", style: "cancel" },
+            { 
+            text: "Eliminar", 
+            style: "destructive",
+            onPress: async () => {
+                try {
+                const res = await apiFetch(`/Trabajo/${trabajoId}`, { method: 'DELETE' });
+                if (res.ok) {
+                    Alert.alert("Éxito", "Trabajo eliminado correctamente");
+                    setTrabajos(trabajos.filter(t => t.ID !== trabajoId));
+                } else {
+                    Alert.alert("Error", "No se pudo eliminar el trabajo");
+                }
+                } catch (err) {
+                console.error(err);
+                Alert.alert("Error", "Error al conectar con el servidor");
+                }
+            }
+            }
+        ]
+        );
+    };
 
     return (
         <View style={styles.contenedor}>
@@ -56,19 +88,19 @@ export default function Trabajo({ navigation }) {
                 {/* Navegardor de fucniones del Aula */}
                 <View style={styles.tituloTrabajo}>
                     
-                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('VerAula')}>
+                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate("VerAula", { id })}>
                         <Text style={styles.textoControlAula}> Inicio</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Trabajo')}>
+                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Trabajo', { id })}>
                         <Text style={styles.textoControlAula}> Trabajos</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Nota')}>
+                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Nota', { id })}>
                         <Text style={styles.textoControlAula}> Notas</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Persona')}>
+                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate("Persona", { id })}>
                         <Text style={styles.textoControlAula}> Personas</Text>
                     </TouchableOpacity>
                     
@@ -116,8 +148,8 @@ export default function Trabajo({ navigation }) {
                         
                             {filteredData.slice(from, to).map((trabajo, index) => (
                                 <DataTable.Row key={index}>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{trabajo.Titulo}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{trabajo.Fecha}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{trabajo.Titulo_Trabajo}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{new Date(trabajo.Fecha_Trabajo).toLocaleDateString()}</Text></DataTable.Cell>
 
                                 <DataTable.Cell style={styles.tablaBody}>
                                     <TouchableOpacity style={styles.botonAccion} onPress={() => navigation.navigate('VerTrabajo')}>
@@ -132,7 +164,7 @@ export default function Trabajo({ navigation }) {
                                 </DataTable.Cell>
 
                                 <DataTable.Cell style={styles.tablaBody}>
-                                    <TouchableOpacity style={styles.botonEliminar}>
+                                    <TouchableOpacity style={styles.botonEliminar} onPress={() => eliminarTrabajo(trabajo.ID)}>
                                         <FontAwesome name="trash" size={16} color="#fff" />
                                     </TouchableOpacity>
                                 </DataTable.Cell>
@@ -233,7 +265,7 @@ const styles = StyleSheet.create({
     // Estilos th
     tablaHead: {
         justifyContent: 'center', 
-        minWidth: 90, 
+        minWidth: 200, 
         borderWidth: 1, 
         borderColor: colors.azulPrimario
     },

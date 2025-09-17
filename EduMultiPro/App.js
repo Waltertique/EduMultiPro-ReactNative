@@ -7,7 +7,7 @@ import Encabezado from './Encabezado';
 import Footer from './footer';
 import colors from './colors'; 
 import AdminStack from './Admin/AdminStack';
-import PrincipalCoordinador from './Coordinador/PrincipalCoordinador';
+import CoordinadorStack from './Coordinador/CoordinadorStack';
 import PrincipalProfesor from './Profesor/PrincipalProfesor';
 import PrincipalAlumno from './Alumno/PrincipalAlumno';
 
@@ -50,7 +50,7 @@ function LoginScreen({ navigation }) {
             navigation.replace("AdminStack");
             break;
           case "R003":
-            navigation.replace("PrincipalCoordinador");
+            navigation.replace("CoordinadorStack");
             break;
           case "R002":
             navigation.replace("PrincipalProfesor");
@@ -134,8 +134,8 @@ export default function App() {
 
         {/* Otros roles */}
         <Stack.Screen 
-          name="PrincipalCoordinador" 
-          component={PrincipalCoordinador} 
+          name="CoordinadorStack" 
+          component={CoordinadorStack} 
           options={{ headerShown: false }} 
         />
         <Stack.Screen 

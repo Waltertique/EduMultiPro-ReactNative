@@ -1,45 +1,48 @@
-import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-
-import { Picker } from "@react-native-picker/picker"; //sirve para hacer los select
-
-import * as React from 'react';
-import { DataTable } from 'react-native-paper';
-
-import Encabezado from '../Encabezado';
-import Footer from '../footer';
-import Desplegable from '../Desplegable';
-import colors from '../colors'; // 👈 archivo donde guardamos las variables
-
-import { apiFetch } from "../api"; // 👈 importa tu helper
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
+import { useRoute } from "@react-navigation/native"; // 👈 para recibir params
+import { useEffect, useState } from "react";
+import { DataTable } from "react-native-paper";
+import Encabezado from "../Encabezado";
+import Footer from "../footer";
+import Desplegable from "../Desplegable";
+import { apiFetch } from "../api";
+import colors from '../colors';
 
 export default function Persona({ navigation }) {
 
-    const [page, setPage] = React.useState(0);
+    const route = useRoute();
+    const { id } = route.params; // 👈 id del aula recibido
+
+    const [usuarios, setUsuarios] = useState([]);
+    const [page, setPage] = useState(0);
     const itemsPerPage = 10;
-    const [search, setSearch] = React.useState('');
+    const [search, setSearch] = useState("");
 
-    // Datos estáticos de ejemplo
-    const data = [
-        { id: '1', Nombre: 'juan', sNombre: 'nombre', pApellido: 'apellido', sApellido: 'apellido' },
-        { id: '2', Nombre: 'pedro', sNombre: 'nombre', pApellido: 'apellido', sApellido: 'apellido' },
-        { id: '3', Nombre: 'miguel', sNombre: 'nombre', pApellido: 'Sapellido', sApellido: 'apellido' },
-        { id: '4', Nombre: 'saul', sNombre: 'nombre', pApellido: 'apellido', sApellido: 'apellido' },
-        { id: '5', Nombre: 'alan', sNombre: 'nombre', pApellido: 'apellido', sApellido: 'apellido' },
-        { id: '6', Nombre: 'pepe', sNombre: 'nombre', pApellido: 'apellido', sApellido: 'apellido' },
-    ];
+    // 🔹 Cargar personas desde el backend
+    useEffect(() => {
+        const fetchUsuarios = async () => {
+        try {
+            const res = await apiFetch(`/Aulas/${id}/integrantes`);
+            const data = await res.json();
+            setUsuarios(data);
+        } catch (error) {
+            console.error("Error al obtener los usuarios:", error);
+        }
+        };
+        fetchUsuarios();
+    }, [id]);
 
-    // Filtrado por búsqueda
-    const filteredData = data.filter(
+    // 🔹 Filtrado
+    const filteredData = usuarios.filter(
         (item) =>
-        item.id.includes(search) ||
-        item.Nombre.toLowerCase().includes(search.toLowerCase()) ||
-        item.sNombre.toLowerCase().includes(search.toLowerCase()) ||
-        item.pApellido.toLowerCase().includes(search.toLowerCase()) ||
-        item.sApellido.toLowerCase().includes(search.toLowerCase())
+        item.ID.toString().includes(search) ||
+        item.Primer_Nombre.toLowerCase().includes(search.toLowerCase()) ||
+        (item.Segundo_Nombre || "").toLowerCase().includes(search.toLowerCase()) ||
+        item.Primer_Apellido.toLowerCase().includes(search.toLowerCase()) ||
+        (item.Segundo_Apellido || "").toLowerCase().includes(search.toLowerCase())
     );
 
-    // Paginación
+    // 🔹 Paginación
     const from = page * itemsPerPage;
     const to = Math.min((page + 1) * itemsPerPage, filteredData.length);
 
@@ -58,19 +61,19 @@ export default function Persona({ navigation }) {
                 {/* Navegardor de fucniones del Aula */}
                 <View style={styles.tituloTrabajo}>
                     
-                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('VerAula')}>
+                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate("VerAula", { id })}>
                         <Text style={styles.textoControlAula}> Inicio</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Trabajo')}>
+                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Trabajo', { id })}>
                         <Text style={styles.textoControlAula}> Trabajos</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Nota')}>
+                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Nota', { id })}>
                         <Text style={styles.textoControlAula}> Notas</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Persona')}>
+                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate("Persona", { id })}>
                         <Text style={styles.textoControlAula}> Personas</Text>
                     </TouchableOpacity>
                     
@@ -112,11 +115,11 @@ export default function Persona({ navigation }) {
                         
                             {filteredData.slice(from, to).map((usuario, index) => (
                                 <DataTable.Row key={index}>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.id}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.Nombre}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.sNombre}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.pApellido}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.sApellido}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.ID}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.Primer_Nombre}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.Segundo_Nombre || ""}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.Primer_Apellido}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.Segundo_Apellido || ""}</Text></DataTable.Cell>
                                 </DataTable.Row>
                             ))}
                         

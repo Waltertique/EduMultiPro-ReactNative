@@ -280,15 +280,15 @@ export default function VerAula({ navigation }) {
                         <Text style={styles.textoControlAula}> Inicio</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Trabajo')}>
+                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Trabajo', { id: route.params.id })}>
                         <Text style={styles.textoControlAula}> Trabajos</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Nota')}>
+                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Nota', { id: route.params.id })}>
                         <Text style={styles.textoControlAula}> Notas</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Persona')}>
+                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate("Persona", { id: route.params.id })}>
                         <Text style={styles.textoControlAula}> Personas</Text>
                     </TouchableOpacity>
                     

@@ -1,46 +1,50 @@
-import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-
-import { Picker } from "@react-native-picker/picker"; //sirve para hacer los select
-
 import * as React from 'react';
 import { DataTable } from 'react-native-paper';
 
 import Encabezado from '../Encabezado';
 import Footer from '../footer';
 import Desplegable from '../Desplegable';
+import { apiFetch } from "../api";
 import colors from '../colors'; // 👈 archivo donde guardamos las variables
 
-import { apiFetch } from "../api"; // 👈 importa tu helper
+export default function Nota({ navigation, route }) {
 
-export default function Nota({ navigation }) {
-
+    const { id } = route.params; // 👈 id del aula
     const [page, setPage] = React.useState(0);
     const itemsPerPage = 10;
     const [search, setSearch] = React.useState('');
 
-    // Datos estáticos de ejemplo
-    const data = [
-        { id: '1', Nombre: 'juan', Trabajo1: 'Sin Nota', Trabajo2: 'Sin Nota' },
-        { id: '2', Nombre: 'pedro', Trabajo1: 'Sin Nota', Trabajo2: 'Sin Nota' },
-        { id: '3', Nombre: 'miguel', Trabajo1: 'Sin Nota', Trabajo2: 'Sin Nota' },
-        { id: '4', Nombre: 'saul', Trabajo1: 'Sin Nota', Trabajo2: 'Sin Nota' },
-        { id: '5', Nombre: 'alan', Trabajo1: 'Sin Nota', Trabajo2: 'Sin Nota' },
-        { id: '6', Nombre: 'pepe', Trabajo1: 'Sin Nota', Trabajo2: 'Sin Nota' },
-    ];
+    const [trabajos, setTrabajos] = React.useState([]);
+    const [tablaNotas, setTablaNotas] = React.useState([]);
 
-    // Filtrado por búsqueda
-    const filteredData = data.filter(
+    // 🔹 Llamar al backend
+    React.useEffect(() => {
+        const obtenerNotas = async () => {
+        try {
+            const res = await apiFetch(`/Aulas/${id}/Notas`);
+            const data = await res.json();
+            setTrabajos(data.trabajos);
+            setTablaNotas(data.tabla_notas);
+        } catch (error) {
+            console.error("Error al obtener notas:", error);
+            Alert.alert("Error", "No se pudieron cargar las notas");
+        }
+        };
+        obtenerNotas();
+    }, [id]);
+
+    // 🔹 Filtrar por búsqueda
+    const filteredData = tablaNotas.filter(
         (item) =>
-        item.id.includes(search) ||
-        item.Nombre.toLowerCase().includes(search.toLowerCase()) ||
-        item.Trabajo1.toLowerCase().includes(search.toLowerCase()) ||
-        item.Trabajo2.toLowerCase().includes(search.toLowerCase())
+        item.nombre.toLowerCase().includes(search.toLowerCase())
     );
 
-    // Paginación
+    // 🔹 Paginación
     const from = page * itemsPerPage;
     const to = Math.min((page + 1) * itemsPerPage, filteredData.length);
+
 
     return (
         <View style={styles.contenedor}>
@@ -57,19 +61,19 @@ export default function Nota({ navigation }) {
                 {/* Navegardor de fucniones del Aula */}
                 <View style={styles.tituloTrabajo}>
                     
-                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('VerAula')}>
+                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate("VerAula", { id })}>
                         <Text style={styles.textoControlAula}> Inicio</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Trabajo')}>
+                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Trabajo', { id })}>
                         <Text style={styles.textoControlAula}> Trabajos</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Nota')}>
+                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Nota', { id })}>
                         <Text style={styles.textoControlAula}> Notas</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Persona')}>
+                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate("Persona", { id })}>
                         <Text style={styles.textoControlAula}> Personas</Text>
                     </TouchableOpacity>
                     
@@ -103,15 +107,28 @@ export default function Nota({ navigation }) {
                             <DataTable>
                             <DataTable.Header>
                                 <DataTable.Title style={styles.tablaHead}>Nombre</DataTable.Title>
-                                <DataTable.Title style={styles.tablaHead}>Trabajo1</DataTable.Title>
-                                <DataTable.Title style={styles.tablaHead}>Trabajo2</DataTable.Title>
+                                {trabajos.map((trabajo, index) => (
+                                <DataTable.Title key={index} style={styles.tablaHead}>
+                                    {trabajo}
+                                </DataTable.Title>
+                                ))}
                             </DataTable.Header>
                         
-                            {filteredData.slice(from, to).map((nota, index) => (
-                                <DataTable.Row key={index}>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{nota.Nombre}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{nota.Trabajo1}</Text></DataTable.Cell>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{nota.Trabajo2}</Text></DataTable.Cell>
+                            {filteredData.slice(from, to).map((fila, i) => (
+                                <DataTable.Row key={i}>
+                                <DataTable.Cell style={styles.tablaBody}>
+                                    <Text numberOfLines={1} ellipsizeMode="tail">{fila.nombre}</Text>
+                                </DataTable.Cell>
+
+                                {trabajos.map((trabajo, j) => (
+                                    <DataTable.Cell key={j} style={styles.tablaBody}>
+                                    <Text numberOfLines={1} ellipsizeMode="tail">
+                                        {fila.notas && fila.notas[trabajo] !== undefined
+                                        ? fila.notas[trabajo]
+                                        : "sin nota"}
+                                    </Text>
+                                    </DataTable.Cell>
+                                ))}
                                 </DataTable.Row>
                             ))}
                         
@@ -196,7 +213,7 @@ const styles = StyleSheet.create({
     // Estilos th
     tablaHead: {
         justifyContent: 'center', 
-        minWidth: 90, 
+        minWidth: 260, 
         borderWidth: 1, 
         borderColor: colors.azulPrimario
     },
