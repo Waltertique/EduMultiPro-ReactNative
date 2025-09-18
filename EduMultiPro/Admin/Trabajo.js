@@ -109,7 +109,7 @@ export default function Trabajo({ navigation, route }) {
                 <View style={styles.tituloUsuario}>
                     <Text style={styles.titleUsuario}>Trabajos Actuales</Text>
                     
-                    <TouchableOpacity style={styles.botonCrearUsuario} onPress={() => navigation.navigate('CrearTrabajo')}>
+                    <TouchableOpacity style={styles.botonCrearUsuario} onPress={() => navigation.navigate('CrearTrabajo', { id })}>
                         <FontAwesome name="users" size={16} color="#fff" />
                         <Text style={styles.textoCrearUsuario}> Crear</Text>
                     </TouchableOpacity>
@@ -158,7 +158,7 @@ export default function Trabajo({ navigation, route }) {
                                 </DataTable.Cell>
 
                                 <DataTable.Cell style={styles.tablaBody}>
-                                    <TouchableOpacity style={styles.botonModificar} onPress={() => navigation.navigate('ActualizarTrabajo')}>
+                                    <TouchableOpacity style={styles.botonModificar} onPress={() => navigation.navigate('ActualizarTrabajo', { id: trabajo.ID })}>
                                         <FontAwesome name="edit" size={16} color="#fff" />
                                     </TouchableOpacity>
                                 </DataTable.Cell>

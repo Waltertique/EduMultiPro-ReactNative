@@ -20,6 +20,7 @@ Comandos que se instala en la carpeta del frontend:
 -npx expo install expo@~54.0.0
 -npx expo install @expo/metro-runtime @react-native-async-storage/async-storage @react-native-community/datetimepicker expo-linear-gradient expo-status-bar react react-dom react-native react-native-safe-area-context react-native-screens react-native-web
 -npx expo install @expo/metro-runtime@~6.1.2 expo@54.0.7 expo-linear-gradient@~15.0.7 expo-status-bar@~3.0.8
+-npx expo install expo@54.0.8 expo-constants@~18.0.9
 
 Comandos que se instala en la carpeta del Backend:
 
