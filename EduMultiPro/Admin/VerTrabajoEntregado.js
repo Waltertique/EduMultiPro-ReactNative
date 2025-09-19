@@ -1,38 +1,101 @@
-import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { 
+  View, Text, TextInput, TouchableOpacity, 
+  StyleSheet, ScrollView, Alert 
+} from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-
 import * as React from 'react';
 import { DataTable } from 'react-native-paper';
 
 import Encabezado from '../Encabezado';
 import Footer from '../footer';
 import Desplegable from '../Desplegable';
-import colors from '../colors'; // 👈 archivo donde guardamos las variables
+import { apiFetch, STATIC_URL } from "../api"; // 👈 usamos tu api.js
+import { useRoute } from '@react-navigation/native';
+import { Linking } from "react-native";
+import colors from '../colors';
 
 export default function VerTrabajoEntregado({ navigation }) {
+
+    const route = useRoute();
+    const { id, aula_id } = route.params || {}; 
 
     const [page, setPage] = React.useState(0);
     const itemsPerPage = 10;
     const [search, setSearch] = React.useState('');
 
-    // Datos estáticos de ejemplo
-    const data = [
-        { id: '1', Nombre: 'Juan' },
-        { id: '2', Nombre: 'Juan' },
-        { id: '3', Nombre: 'Juan' },
-        { id: '4', Nombre: 'Juan' },
-        { id: '5', Nombre: 'Juan' },
-        { id: '6', Nombre: 'Juan' },
-    ];
+    const [entregas, setEntregas] = React.useState([]);
+    const [entregaSeleccionada, setEntregaSeleccionada] = React.useState(null);
+    const [archivosEntrega, setArchivosEntrega] = React.useState([]);
+    const [nuevaNota, setNuevaNota] = React.useState("");
 
-    // Filtrado por búsqueda
-    const filteredData = data.filter(
+    // 🔹 Cargar lista de entregas
+    React.useEffect(() => {
+        if (!id) return;
+
+        const fetchEntregas = async () => {
+        try {
+            const res = await apiFetch(`/Trabajos/${id}/Entregados`);
+            const data = await res.json();
+            setEntregas(data);
+        } catch (error) {
+            console.error("❌ Error cargando entregas:", error);
+            Alert.alert("Error", "No se pudo cargar la lista de entregas");
+        }
+        };
+
+        fetchEntregas();
+    }, [id]);
+
+    // 🔹 Ver entrega seleccionada
+    const handleMostrarEntrega = async (entrega) => {
+        setEntregaSeleccionada(entrega);
+        setNuevaNota(entrega.Nota ? String(entrega.Nota) : ""); // mostrar nota actual
+
+        try {
+        const res = await apiFetch(`/TrabajoEntregado/${entrega.trabajo_entregado_id}/Archivos`);
+        const archivos = await res.json();
+        setArchivosEntrega(archivos);
+        } catch (error) {
+        console.error("❌ Error al cargar archivos:", error);
+        setArchivosEntrega([]);
+        }
+    };
+
+    // 🔹 Asignar nota
+    const handleAsignarNota = async () => {
+        if (!nuevaNota.trim()) {
+        Alert.alert("Error", "La nota no puede estar vacía");
+        return;
+        }
+
+        try {
+        const res = await apiFetch(`/Trabajos/Entregado/${entregaSeleccionada.trabajo_entregado_id}/Nota`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nota: nuevaNota }),
+        });
+
+        const data = await res.json();
+        Alert.alert("Nota", data.mensaje);
+
+        // refrescar lista
+        const res2 = await apiFetch(`/Trabajos/${id}/Entregados`);
+        const data2 = await res2.json();
+        setEntregas(data2);
+
+        setEntregaSeleccionada(null); // cerrar pestaña
+        } catch (error) {
+        console.error("❌ Error al asignar nota:", error);
+        Alert.alert("Error", "No se pudo asignar la nota");
+        }
+    };
+
+    // 🔹 Filtrado búsqueda
+    const filteredData = entregas.filter(
         (item) =>
-        item.id.includes(search) ||
-        item.Nombre.toLowerCase().includes(search.toLowerCase()) 
+        item.nombre_completo.toLowerCase().includes(search.toLowerCase())
     );
 
-    // Paginación
     const from = page * itemsPerPage;
     const to = Math.min((page + 1) * itemsPerPage, filteredData.length);
 
@@ -51,7 +114,7 @@ export default function VerTrabajoEntregado({ navigation }) {
                 {/* Navegardor de fucniones del trabajo */}
                 <View style={styles.tituloTrabajo}>
                     
-                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('VerTrabajo')}>
+                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('VerTrabajo', { id, aula_id })}>
                         <Text style={styles.textoControlAula}> Trabajo</Text>
                     </TouchableOpacity>
 
@@ -59,7 +122,7 @@ export default function VerTrabajoEntregado({ navigation }) {
                         <Text style={styles.textoControlAula}> Entregas</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Trabajo')}>
+                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Trabajo', { id, aula_id })}>
                         <Text style={styles.textoControlAula}> Salir</Text>
                     </TouchableOpacity>
                     
@@ -91,12 +154,15 @@ export default function VerTrabajoEntregado({ navigation }) {
                                 <DataTable.Title style={styles.tablaHead}>Ver</DataTable.Title>
                             </DataTable.Header>
                         
-                            {filteredData.slice(from, to).map((trabajo, index) => (
-                                <DataTable.Row key={index}>
-                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{trabajo.Nombre}</Text></DataTable.Cell>
+                            {filteredData.slice(from, to).map((entrega) => (
+                                <DataTable.Row key={entrega.trabajo_entregado_id}>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{entrega.nombre_completo}</Text></DataTable.Cell>
 
                                 <DataTable.Cell style={styles.tablaBody}>
-                                    <TouchableOpacity style={styles.botonAccion}>
+                                    <TouchableOpacity
+                                        style={styles.botonAccion}
+                                        onPress={() => handleMostrarEntrega(entrega)}
+                                    >
                                         <FontAwesome name="info" size={16} color="#fff" />
                                     </TouchableOpacity>
                                 </DataTable.Cell>
@@ -106,12 +172,11 @@ export default function VerTrabajoEntregado({ navigation }) {
                         
                             {/* Paginación */}
                             <DataTable.Pagination
-                                page={page}
-                                numberOfPages={Math.ceil(filteredData.length / itemsPerPage)}
-                                onPageChange={(p) => setPage(p)}
-                                label={`${from + 1}-${to} de ${filteredData.length}`}
-                                numberOfItemsPerPage={itemsPerPage}
-                                showFastPagination
+                            page={page}
+                            numberOfPages={Math.ceil(filteredData.length / itemsPerPage)}
+                            onPageChange={(p) => setPage(p)}
+                            label={`${from + 1}-${to} de ${filteredData.length}`}
+                            numberOfItemsPerPage={itemsPerPage}
                             />
                             </DataTable>
                         </ScrollView>
@@ -119,25 +184,38 @@ export default function VerTrabajoEntregado({ navigation }) {
 
                 </View>
 
-                <View style={styles.contenedorNota}>
-                    <Text style={styles.nombre}>Johan Sneider Madrigal Tique</Text>
-                    <Text style={styles.nota}>Nota: 100</Text>
-                    <Text style={styles.archivo}>Ver Archivo</Text>
-                    <Text style={styles.archivo}>Ver Archivo</Text>
-                    <Text style={styles.fecha}>Fecha de Entrega: 19/04/3554</Text>
+                {entregaSeleccionada && (
+                    <View style={styles.contenedorNota}>
+                    <Text style={styles.nombre}>{entregaSeleccionada.nombre_completo}</Text>
+                    <Text style={styles.nota}>Nota actual: {entregaSeleccionada.Nota || "Sin nota"}</Text>
 
-                    {/* Formulario Para asignar una nota */}
+                    {archivosEntrega.map((archivo, index) => (
+                        <TouchableOpacity key={index} onPress={() => Linking.openURL(`${STATIC_URL}/imagenes/${archivo.ruta_archivo}`)}>
+                        <Text style={styles.archivo}>{archivo.nombre_original}</Text>
+                        </TouchableOpacity>
+                    ))}
+
+                    <Text style={styles.fecha}>Fecha de Entrega: {new Date(entregaSeleccionada.Fecha_Trabajo).toLocaleDateString()}</Text>
+
+                    {/* Formulario para asignar nota */}
                     <View style={styles.ingresoNota}>
-                        <TextInput style={styles.datosNota} placeholder='Nota'/>
-                        <TouchableOpacity style={styles.botonNota}>
-                            <Text style={styles.textoCrearAula}>Enviar</Text>
+                        <TextInput
+                        style={styles.datosNota}
+                        placeholder="Nota"
+                        value={nuevaNota}
+                        onChangeText={setNuevaNota}
+                        keyboardType="numeric"
+                        />
+                        <TouchableOpacity style={styles.botonNota} onPress={handleAsignarNota}>
+                        <Text style={styles.textoCrearAula}>Enviar</Text>
                         </TouchableOpacity>
                     </View>
 
-                    <TouchableOpacity style={styles.botonEliminar}>
-                        <Text style={styles.textoCrearAula}> Salir</Text>
+                    <TouchableOpacity style={styles.botonEliminar} onPress={() => setEntregaSeleccionada(null)}>
+                        <Text style={styles.textoCrearAula}>Cerrar</Text>
                     </TouchableOpacity>
-                </View>
+                    </View>
+                )}
             </View>
 
         <Footer />
@@ -246,7 +324,9 @@ const styles = StyleSheet.create({
     },
     archivo:{
         marginTop: 10,
-        marginLeft: 20
+        marginLeft: 20,
+        color: colors.azulPrimario,
+        textDecorationLine: 'underline'
     },
     fecha:{
         marginTop: 10,

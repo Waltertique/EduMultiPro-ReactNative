@@ -1,15 +1,121 @@
-import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-
-import * as React from 'react';
-import { DataTable } from 'react-native-paper';
+import { 
+  View, Text, TextInput, TouchableOpacity, 
+  StyleSheet, ScrollView, Image, Alert 
+} from 'react-native';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRoute } from '@react-navigation/native';
+import React from 'react';
+import { Linking } from "react-native";
 
 import Encabezado from '../Encabezado';
 import Footer from '../footer';
 import Desplegable from '../Desplegable';
-import colors from '../colors'; // 👈 archivo donde guardamos las variables
+import colors from '../colors';
+import { apiFetch, STATIC_URL } from "../api";
 
 export default function VerTrabajo({ navigation }) {
+
+    const route = useRoute();
+    const { id, aula_id } = route.params || {}; 
+
+    const [trabajo, setTrabajo] = React.useState(null);
+    const [archivos, setArchivos] = React.useState([]);
+    const [comentarios, setComentarios] = React.useState([]);
+    const [nuevoComentario, setNuevoComentario] = React.useState("");
+
+    // 🔹 Cargar trabajo y comentarios
+    React.useEffect(() => {
+        if (!id) return;
+
+        const fetchData = async () => {
+        try {
+            // Trabajo + archivos
+            const resTrabajo = await apiFetch(`/Trabajo/${id}`);
+            const dataTrabajo = await resTrabajo.json();
+            setTrabajo(dataTrabajo.trabajo);
+            setArchivos(dataTrabajo.archivos);
+
+            // Comentarios
+            const resComentarios = await apiFetch(`/Comentarios/Trabajo/${id}`);
+            const dataComentarios = await resComentarios.json();
+            setComentarios(dataComentarios);
+        } catch (error) {
+            console.error("❌ Error cargando trabajo:", error);
+            Alert.alert("Error", "No se pudo cargar la información del trabajo");
+        }
+        };
+
+        fetchData();
+    }, [id]);
+
+    // 🔹 Crear comentario
+    const handleCrearComentario = async () => {
+        if (!nuevoComentario.trim()) {
+        Alert.alert("Error", "El comentario no puede estar vacío");
+        return;
+        }
+
+        const usuarioLogueado = JSON.parse(await AsyncStorage.getItem("usuario"));
+        if (!usuarioLogueado) {
+        Alert.alert("Error", "Debes iniciar sesión");
+        return;
+        }
+
+        try {
+        const res = await apiFetch("/Comentarios", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+            descripcion: nuevoComentario,
+            trabajo_id: id,
+            usuario_id: usuarioLogueado.id,
+            }),
+        });
+
+        const data = await res.json();
+        Alert.alert("Comentario", data.mensaje);
+
+        setNuevoComentario("");
+
+        // refrescar comentarios
+        const resComentarios = await apiFetch(`/Comentarios/Trabajo/${id}`);
+        const dataComentarios = await resComentarios.json();
+        setComentarios(dataComentarios);
+        } catch (error) {
+        console.error("❌ Error comentario:", error);
+        Alert.alert("Error", "No se pudo enviar el comentario");
+        }
+    };
+
+    // 🔹 Eliminar comentario
+    const handleEliminarComentario = async (comentarioId) => {
+        Alert.alert("Confirmar", "¿Eliminar este comentario?", [
+        { text: "Cancelar", style: "cancel" },
+        { 
+            text: "Eliminar", 
+            style: "destructive", 
+            onPress: async () => {
+            try {
+                const res = await apiFetch(`/Comentarios/${comentarioId}`, { method: "DELETE" });
+                const data = await res.json();
+                Alert.alert("Comentario", data.mensaje);
+
+                // refrescar
+                const resComentarios = await apiFetch(`/Comentarios/Trabajo/${id}`);
+                const dataComentarios = await resComentarios.json();
+                setComentarios(dataComentarios);
+            } catch (error) {
+                console.error("❌ Error eliminando comentario:", error);
+                Alert.alert("Error", "No se pudo eliminar el comentario");
+            }
+            }
+        }
+        ]);
+    };
+
+    if (!trabajo) {
+        return <Text style={{ marginTop: 50, textAlign: "center" }}>Cargando trabajo...</Text>;
+    }
 
     return (
         <View style={styles.contenedor}>
@@ -30,11 +136,11 @@ export default function VerTrabajo({ navigation }) {
                         <Text style={styles.textoControlAula}> Trabajo</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('VerTrabajoEntregado')}>
+                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('VerTrabajoEntregado', { id, aula_id })}>
                         <Text style={styles.textoControlAula}> Entregas</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Trabajo')}>
+                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Trabajo', { id: aula_id })}>
                         <Text style={styles.textoControlAula}> Salir</Text>
                     </TouchableOpacity>
                     
@@ -46,48 +152,58 @@ export default function VerTrabajo({ navigation }) {
                       style={styles.img1} 
                       resizeMode="contain"
                     />
-                    <Text style={styles.trabajoTitle}>Titulo del Trabajo </Text>
+                    <Text style={styles.trabajoTitle}>{trabajo.Titulo_Trabajo}</Text>
                 </View> 
                 <View style={styles.titleFecha}>
-                    <Text>Fecha de Entrega: 40/34/4543 </Text>
+                    <Text>Fecha de Entrega: {new Date(trabajo.Fecha_Trabajo).toLocaleDateString()}</Text>
                 </View> 
                 <View style={styles.descripcionTrabajo}>
                     <Text style={styles.descipcionTitle}>Descripcion: </Text>
-                    <Text style={styles.trabajoDescipcion}>Apple ha presentado oficialmente su nuevo iPhone con capacidades avanzadas 
-                        de inteligencia artificial, en un evento que ha generado gran expectativa en el 
-                        mundo tecnológico. El dispositivo incluye un procesador mejorado, sensores más precisos 
-                        y nuevas funciones que aprenden del comportamiento del usuario para ofrecer una experiencia más personalizada.</Text>
-                    <Text style={styles.archivo}>Ver Archivo</Text>
+                    <Text style={styles.trabajoDescipcion}>{trabajo.Descripcion_Trabajo}</Text>
+                    {archivos.map((archivo) => (
+                        <TouchableOpacity key={archivo.ID} onPress={() => Linking.openURL(`${STATIC_URL}/${archivo.ruta_archivo}`)}>
+                            <Text style={styles.archivo}>{archivo.nombre_original}</Text>
+                        </TouchableOpacity>
+                    ))}
                 </View>
                 
                 <Text style={styles.titleComentario}>Agregar comentario</Text>
 
                 {/* Formulario Para crear un comentario */}
                     <View style={styles.ingresoComentario}>
-                        <TextInput style={styles.datosComentar} placeholder='Comentar'/>
-                        <TouchableOpacity style={styles.botonComentar}>
-                            <Text style={styles.textoCrearAula}>Enviar</Text>
+                        <TextInput
+                        style={styles.datosComentar}
+                        placeholder='Escribe tu comentario'
+                        value={nuevoComentario}
+                        onChangeText={setNuevoComentario}
+                        />
+                        <TouchableOpacity style={styles.botonComentar} onPress={handleCrearComentario}>
+                        <Text style={styles.textoCrearAula}>Enviar</Text>
                         </TouchableOpacity>
                     </View>
 
                 {/* Informacion del Comentario */}
-                    <View style={styles.verComentario}>
+                    {comentarios.map((comentario) => (
+                        <View key={comentario.ID} style={styles.verComentario}>
                         <View style={styles.verAnuncioFoto}>
                             <View style={styles.info1}>
-                                <Image source={require('../assets/foto.jpg')} style={styles.img2} resizeMode="contain"/>
-                                <Text style={styles.nombreUsuario}>Nombre Usuario</Text>
+                            <Image 
+                                source={{ uri: `${STATIC_URL}/imagenes/${comentario.RutaFoto || 'usuario.png'}` }} 
+                                style={styles.img2} 
+                                resizeMode="contain"
+                            />
+                            <Text style={styles.nombreUsuario}>{comentario.Nombre_Usuario}</Text>
                             </View>
-                            <Text style={styles.fechaAnuncio}>22/23/3423</Text>
+                            <Text style={styles.fechaAnuncio}>{new Date(comentario.Fecha).toLocaleDateString()}</Text>
                         </View>
 
-                        <Text style={styles.textoAnuncio}>Apple ha presentado oficialmente su nuevo iPhone con capacidades avanzadas 
-                            de inteligencia artificial, en un evento que ha generado gran expectativa en el mundo tecnológico. 
-                        </Text>
+                        <Text style={styles.textoAnuncio}>{comentario.Descripcion}</Text>
 
-                        <TouchableOpacity style={styles.botonEliminar}>
-                            <Text style={styles.textoCrearAula}> Eliminar</Text>
+                        <TouchableOpacity style={styles.botonEliminar} onPress={() => handleEliminarComentario(comentario.ID)}>
+                            <Text style={styles.textoCrearAula}>Eliminar</Text>
                         </TouchableOpacity>
-                    </View>
+                        </View>
+                    ))}
             </View>
 
         <Footer />
@@ -173,7 +289,8 @@ const styles = StyleSheet.create({
     archivo: {
         color: colors.azulPrimario,
         marginTop: 10,
-        textDecorationLine: 'underline'
+        textDecorationLine: 'underline',
+        maxWidth: 300
     },
     comentario: {
         minWidth: '90%',
