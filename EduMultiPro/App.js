@@ -8,8 +8,8 @@ import Footer from './footer';
 import colors from './colors'; 
 import AdminStack from './Admin/AdminStack';
 import CoordinadorStack from './Coordinador/CoordinadorStack';
-import PrincipalProfesor from './Profesor/PrincipalProfesor';
-import PrincipalAlumno from './Alumno/PrincipalAlumno';
+import ProfesorStack from './Profesor/ProfesorStack';
+import AlumnoStack from './Alumno/AlumnoStack';
 
 import * as React from 'react';
 
@@ -53,10 +53,10 @@ function LoginScreen({ navigation }) {
             navigation.replace("CoordinadorStack");
             break;
           case "R002":
-            navigation.replace("PrincipalProfesor");
+            navigation.replace("ProfesorStack");
             break;
           case "R001":
-            navigation.replace("PrincipalAlumno");
+            navigation.replace("AlumnoStack");
             break;
           default:
             Alert.alert("Error", "Rol no reconocido");
@@ -139,13 +139,13 @@ export default function App() {
           options={{ headerShown: false }} 
         />
         <Stack.Screen 
-          name="PrincipalProfesor" 
-          component={PrincipalProfesor} 
+          name="ProfesorStack" 
+          component={ProfesorStack} 
           options={{ headerShown: false }} 
         />
         <Stack.Screen 
-          name="PrincipalAlumno" 
-          component={PrincipalAlumno} 
+          name="AlumnoStack" 
+          component={AlumnoStack} 
           options={{ headerShown: false }} 
         />
       </Stack.Navigator>
