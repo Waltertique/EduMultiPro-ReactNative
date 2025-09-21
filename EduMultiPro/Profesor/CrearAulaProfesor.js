@@ -5,13 +5,12 @@ import * as React from 'react';
 
 import Encabezado from '../Encabezado';
 import Footer from '../footer';
-import Desplegable from '../Desplegable';
-import colors from '../colors';
+import DesplegableProfesor from './DesplegableProfesor.js';
+import colors from '../colors'; // 👈 archivo donde guardamos las variables
 
 import { apiFetch } from "../api"; // 👈 importa tu helper
 
-
-export default function CrearAula({ navigation }) {
+export default function CrearAulaProfesor({ navigation }) {
 
     const [aulaNombre, setAulaNombre] = React.useState("");
     const [materiaId, setMateriaId] = React.useState("");
@@ -63,7 +62,7 @@ export default function CrearAula({ navigation }) {
         });
         const data = await res.json();
         Alert.alert("Aviso", data.mensaje || "Aula creada correctamente");
-        navigation.navigate("Aula");
+        navigation.navigate("ClaseProfesor");
         } catch (error) {
         console.error("Error al crear el aula:", error);
         Alert.alert("Error", "Ocurrió un error al crear el aula");
@@ -75,80 +74,82 @@ export default function CrearAula({ navigation }) {
     
             <Encabezado />
     
-            <Desplegable />
+            <DesplegableProfesor />
     
             {/* 👉 Scroll vertical */}
             <ScrollView contentContainerStyle={{ flexGrow: 1, alignItems: 'center' }}>
           
-            <View style={styles.centroUsuario}>
-    
-                <View style={styles.tituloUsuario}>
-                    <Text style={styles.titleUsuario}>Crear Aula</Text>
-                    
-                    <TouchableOpacity style={styles.botonCrearUsuario} onPress={() => navigation.navigate('Aula')}>
-                        <FontAwesome name="user" size={16} color="#fff" />
-                        <Text style={styles.textoCrearUsuario}> Salir</Text>
-                    </TouchableOpacity>
-    
-                </View>
-                
-                <View style={styles.formularioModificar}>
-                    <TextInput
-                        style={styles.datosFormulario}
-                        placeholder='Nombre del Aula'
-                        value={aulaNombre}
-                        onChangeText={setAulaNombre}
-                    />
+                <View style={styles.centroProfeso}>
 
-                    <View style={{ borderWidth: 1, borderColor: colors.azulPrimario, borderRadius: 20, minWidth: '80%', marginTop: 10}}>
-                        <Picker
-                            selectedValue={materiaId}
-                            onValueChange={(value) => setMateriaId(value)}
-                            >
-                            <Picker.Item label="Seleccione una Materia" value="" />
-                            {materias.map((m) => (
-                                <Picker.Item key={m.ID} label={m.Materia_Nombre} value={m.ID} />
-                            ))}
-                        </Picker>
-                    </View>
-
-                    <View style={{ borderWidth: 1, borderColor: colors.azulPrimario, borderRadius: 20, minWidth: '80%', marginTop: 10}}>
-                        <Picker
-                            selectedValue={cursoId}
-                            onValueChange={(value) => setCursoId(value)}
-                            >
-                            <Picker.Item label="Seleccione un Curso" value="" />
-                            {cursos.map((c) => (
-                                <Picker.Item key={c.ID} label={c.Curso_Con_Jornada} value={c.ID} />
-                            ))}
-                        </Picker>
-                    </View>
-
-                    <View style={{ borderWidth: 1, borderColor: colors.azulPrimario, borderRadius: 20, minWidth: '80%', marginTop: 10, marginBottom: 20}}>
-                        <Picker
-                            selectedValue={usuarioId}
-                            onValueChange={(value) => setUsuarioId(value)}
-                            >
-                            <Picker.Item label="Seleccione un Profesor" value="" />
-                            {profesores.map((p) => (
-                                <Picker.Item key={p.ID} label={p.Nombre_Completo} value={p.ID} />
-                            ))}
-                        </Picker>
-                    </View>
-                    
-                        <TouchableOpacity style={styles.botonCrearUsuario} onPress={guardarAula}>
-                            <Text style={styles.textoCrearUsuario}> Guardar Aula</Text>
+                    <View style={styles.tituloUsuario}>
+                        <Text style={styles.titleUsuario}>Crear Aula</Text>
+                        
+                        <TouchableOpacity style={styles.botonCrearUsuario} onPress={() => navigation.navigate('ClaseProfesor')}>
+                            <FontAwesome name="user" size={16} color="#fff" />
+                            <Text style={styles.textoCrearUsuario}> Salir</Text>
                         </TouchableOpacity>
+        
+                    </View>
+                    
+                    <View style={styles.formularioModificar}>
+                        <TextInput
+                            style={styles.datosFormulario}
+                            placeholder='Nombre del Aula'
+                            value={aulaNombre}
+                            onChangeText={setAulaNombre}
+                        />
+    
+                        <View style={{ borderWidth: 1, borderColor: colors.azulPrimario, borderRadius: 20, minWidth: '80%', marginTop: 10}}>
+                            <Picker
+                                selectedValue={materiaId}
+                                onValueChange={(value) => setMateriaId(value)}
+                                >
+                                <Picker.Item label="Seleccione una Materia" value="" />
+                                {materias.map((m) => (
+                                    <Picker.Item key={m.ID} label={m.Materia_Nombre} value={m.ID} />
+                                ))}
+                            </Picker>
+                        </View>
+    
+                        <View style={{ borderWidth: 1, borderColor: colors.azulPrimario, borderRadius: 20, minWidth: '80%', marginTop: 10}}>
+                            <Picker
+                                selectedValue={cursoId}
+                                onValueChange={(value) => setCursoId(value)}
+                                >
+                                <Picker.Item label="Seleccione un Curso" value="" />
+                                {cursos.map((c) => (
+                                    <Picker.Item key={c.ID} label={c.Curso_Con_Jornada} value={c.ID} />
+                                ))}
+                            </Picker>
+                        </View>
+    
+                        <View style={{ borderWidth: 1, borderColor: colors.azulPrimario, borderRadius: 20, minWidth: '80%', marginTop: 10, marginBottom: 20}}>
+                            <Picker
+                                selectedValue={usuarioId}
+                                onValueChange={(value) => setUsuarioId(value)}
+                                >
+                                <Picker.Item label="Seleccione un Profesor" value="" />
+                                {profesores.map((p) => (
+                                    <Picker.Item key={p.ID} label={p.Nombre_Completo} value={p.ID} />
+                                ))}
+                            </Picker>
+                        </View>
+                        
+                            <TouchableOpacity style={styles.botonCrearUsuario} onPress={guardarAula}>
+                                <Text style={styles.textoCrearUsuario}> Guardar Aula</Text>
+                            </TouchableOpacity>
+                    </View>
+
                 </View>
 
-            </View>
-
-        <Footer />
-
-        </ScrollView>
-
-    </View>
-  );
+            <Footer />
+            
+            </ScrollView>
+                    
+                    
+            
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
@@ -161,12 +162,11 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     
-    centroUsuario: {
+    centroProfeso: {
         flex: 1,
         paddingVertical: 20,
         alignItems: 'center',
     },
-
     tituloUsuario: {
         width: '90%',
         height: 'auto',
@@ -175,7 +175,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingBottom: 10,
         borderBottomWidth: 1,
-        borderColor: colors.azulPrimario
+        borderColor: colors.azulPrimario,
+        marginBottom: 15
     },
     botonCrearUsuario: {
         flexDirection: 'row',
@@ -209,5 +210,4 @@ const styles = StyleSheet.create({
         minWidth: '80%',
         marginTop: 10,
     }
-
-});
+})

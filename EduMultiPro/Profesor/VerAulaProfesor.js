@@ -9,19 +9,28 @@ import { LinearGradient } from 'expo-linear-gradient';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import * as React from 'react';
 import { useRoute } from '@react-navigation/native'; // 👈 Importar
+
 import Encabezado from '../Encabezado';
 import Footer from '../footer';
-import Desplegable from '../Desplegable';
-import colors from '../colors';
+import DesplegableProfesor from './DesplegableProfesor.js';
+import colors from '../colors'; // 👈 archivo donde guardamos las variables
+
 import { apiFetch } from "../api";
 import { STATIC_URL } from "../api"; // 👈 importa aquí
 import { Linking } from "react-native";
 
-export default function VerAula({ navigation }) {
+export default function VerAulaProfesor({ navigation }) {
 
     const route = useRoute();
     const { id } = route.params || {};  
     const [nuevoComentario, setNuevoComentario] = React.useState("");
+    const [usuarioLogueado, setUsuarioLogueado] = React.useState(null);
+
+    React.useEffect(() => {
+    AsyncStorage.getItem("usuario").then((u) => {
+        setUsuarioLogueado(JSON.parse(u));
+    });
+    }, []);
     
     const [aula, setAula] = React.useState(null);
     const [anuncios, setAnuncios] = React.useState([]);
@@ -109,7 +118,7 @@ export default function VerAula({ navigation }) {
             // Comentarios de cada anuncio
             const comentariosPorAnuncio = {};
             for (const anuncio of dataAnuncios) {
-            const resComentarios = await apiFetch(`/Comentarios/Anuncio/${anuncio.ID}`);
+            const resComentarios = await apiFetch(`/ComentariosAlum/Anuncio/${anuncio.ID}`);
             const dataComentarios = await resComentarios.json();
             comentariosPorAnuncio[anuncio.ID] = dataComentarios;
             }
@@ -236,7 +245,7 @@ export default function VerAula({ navigation }) {
         alert(data.mensaje);
 
         // recargar comentarios
-        const resComentarios = await apiFetch(`/Comentarios/Anuncio/${anuncioId}`);
+        const resComentarios = await apiFetch(`/ComentariosAlum/Anuncio/${anuncioId}`);
         const nuevosComentarios = await resComentarios.json();
         setComentarios((prev) => ({ ...prev, [anuncioId]: nuevosComentarios }));
     } catch (error) {
@@ -246,13 +255,17 @@ export default function VerAula({ navigation }) {
 
     // 🔹 Eliminar comentario
     const handleEliminarComentario = async (comentarioId, anuncioId) => {
+    const usuarioLogueado = JSON.parse(await AsyncStorage.getItem("usuario"));
+
     try {
-        const res = await apiFetch(`/Comentarios/${comentarioId}`, { method: "DELETE" });
+        const res = await apiFetch(`/ComentariosAlumAnuncio/${comentarioId}?usuario_id=${usuarioLogueado.id}`, {
+        method: "DELETE"
+        });
         const data = await res.json();
         alert(data.mensaje);
 
         // refrescar comentarios del anuncio
-        const resComentarios = await apiFetch(`/Comentarios/Anuncio/${anuncioId}`);
+        const resComentarios = await apiFetch(`/ComentariosAlum/Anuncio/${anuncioId}`);
         const nuevosComentarios = await resComentarios.json();
         setComentarios((prev) => ({ ...prev, [anuncioId]: nuevosComentarios }));
 
@@ -267,282 +280,281 @@ export default function VerAula({ navigation }) {
     
             <Encabezado />
     
-            <Desplegable />
+            <DesplegableProfesor />
     
             {/* 👉 Scroll vertical */}
             <ScrollView contentContainerStyle={{ flexGrow: 1, alignItems: 'center' }}>
           
-            <View style={styles.centroUsuario}>
+                <View style={styles.centroProfeso}>
 
-                {/* Navegardor de fucniones del Aula */}
-                <View style={styles.tituloUsuario}>
-                    
-                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('VerAula')}>
-                        <Text style={styles.textoControlAula}> Inicio</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Trabajo', { id: route.params.id })}>
-                        <Text style={styles.textoControlAula}> Trabajos</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('Nota', { id: route.params.id })}>
-                        <Text style={styles.textoControlAula}> Notas</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate("Persona", { id: route.params.id })}>
-                        <Text style={styles.textoControlAula}> Personas</Text>
-                    </TouchableOpacity>
-                    
-                </View>
-
-                {/* Informacion Principal del Aula */}
-                {aula && (
-                <LinearGradient
-                      colors={[colors.azulPrimario, colors.azulSecundario]} // 👈 usando variables
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={styles.InformacionAula}
-                    >
-                    <Text style={styles.titleAula}>{aula.Aula_Nombre}</Text>
-                    <Text style={styles.titleAulaProfe}>Profesor: {aula.Profesor}</Text>
-                </LinearGradient>
-                )}
-
-                {/* Botón para mostrar/ocultar formulario */}
-                <View style={styles.tituloCrearAnuncio}>
-                    <Text style={styles.novedad}>Novedades</Text>
-                    <TouchableOpacity style={styles.botonCrearAula} onPress={() => setMostrarFormulario(!mostrarFormulario)}>
-                        <Text style={styles.textoCrearAula}> Crear Anuncio</Text>
-                    </TouchableOpacity>
-                </View>
-
-                {/* Formulario Para crear el Anuncio */}
-                {mostrarFormulario && (
-                    <View style={styles.crearAnuncio}>
-                    <Text style={styles.titleAnuncio}>Crear Anuncio</Text>
-                    <TextInput
-                        style={styles.datosFormulario}
-                        placeholder="Título del Anuncio"
-                        value={nuevoAnuncio.titulo}
-                        onChangeText={(text) =>
-                        setNuevoAnuncio({ ...nuevoAnuncio, titulo: text })
-                        }
-                    />
-                    <TextInput
-                        style={styles.datosDescipcion}
-                        placeholder="Descripcion del anuncio"
-                        multiline
-                        numberOfLines={4}
-                        value={nuevoAnuncio.descripcion}
-                        onChangeText={(text) =>
-                        setNuevoAnuncio({ ...nuevoAnuncio, descripcion: text })
-                        }
-                    />
-
-                    {/* 👇 botón de seleccionar archivo */}
-                    <TouchableOpacity
-                        style={styles.input2}
-                        onPress={seleccionarArchivo}
-                    >
-                        <Text style={{ color: "gray" }}>
-                        {nuevoAnuncio.archivos ? "Archivo seleccionado ✅" : "Subir archivo"}
-                        </Text>
-                    </TouchableOpacity>
-
-                    <View style={styles.BotonesCrear}>
-                        <TouchableOpacity style={styles.botonCrearAula} onPress={handleCrearAnuncio}>
-                        <Text style={styles.textoCrearAula}> Publicar Anuncio</Text>
+                    {/* Navegardor de fucniones del Aula */}
+                    <View style={styles.tituloUsuario}>
+                        
+                        <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('VerAulaProfesor')}>
+                            <Text style={styles.textoControlAula}> Inicio</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.botonCrearAula} onPress={() => setMostrarFormulario(false)}>
-                        <Text style={styles.textoCrearAula}> Cancelar</Text>
+    
+                        <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('TrabajoProfesor', { id: route.params.id })}>
+                            <Text style={styles.textoControlAula}> Trabajos</Text>
                         </TouchableOpacity>
-                    </View>
-                    </View>
-                )}
-
-                {/* Conteneder del Anuncio y sus funciones */}
-                {anuncios.map((anuncio) => (
-                <View key={anuncio.ID} style={styles.verAnuncio}>
-
-                    {/* Botones para eliminar y modificar el anuncio */}
-                    <View style={styles.ControlAnuncio}>
-                        <TouchableOpacity
-                            style={styles.botonAula}
-                            onPress={() => {
-                                setEditandoAnuncioId(anuncio.ID);
-                                setAnuncioEditado({
-                                titulo: anuncio.Titulo_Anuncio,
-                                descripcion: anuncio.Descripcion_Anuncio,
-                                archivos: null, // se cargará si selecciona uno nuevo
-                                });
-                            }}
-                            >
-                            <Text style={styles.textoBotonAula}> Modificar</Text>
+    
+                        <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('NotaProfesor', { id: route.params.id })}>
+                            <Text style={styles.textoControlAula}> Notas</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity
-                            onPress={() =>
-                                Alert.alert(
-                                "Confirmar eliminación",
-                                "¿Estás seguro de que quieres eliminar este anuncio?",
-                                [
-                                    { text: "Cancelar", style: "cancel" },
-                                    { text: "Eliminar", style: "destructive", onPress: () => handleEliminarAnuncio(anuncio.ID) }
-                                ]
-                                )
-                            }
-                            >
-                            <Text style={styles.textoBotonAula}> Eliminar</Text>
+    
+                        <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate("PersonaProfesor", { id: route.params.id })}>
+                            <Text style={styles.textoControlAula}> Personas</Text>
                         </TouchableOpacity>
+                        
                     </View>
-
-                    {/* Informacion del Anuncio */}
-                    <View style={styles.verAnuncioFoto}>
-                        <View style={styles.info1}>
-                            <Image
-                                source={{ uri: `${STATIC_URL}/imagenes/${anuncio.RutaFoto}` }}
-                                style={styles.img1}
-                                resizeMode="contain"
-                            />
-                            <Text style={styles.nombreUsuario}>{anuncio.Profesor}</Text>
-                        </View>
-                        <Text style={styles.fechaAnuncio}>{new Date(anuncio.Fecha_Anuncio).toLocaleDateString()}</Text>
-                    </View>
-
-                    <Text style={styles.textoTitulo}>{anuncio.Titulo_Anuncio}</Text>
-                    <Text style={styles.textoDescripcion}>
-                        {anuncio.Descripcion_Anuncio}
-                        </Text>
-                    {anuncio.Enlace_Anuncio && anuncio.Enlace_Anuncio.split(";").map((archivo, index) => (
-                        <TouchableOpacity
-                            key={index}
-                            onPress={() => Linking.openURL(`${STATIC_URL}/imagenes/${archivo.trim()}`)}
+    
+                    {/* Informacion Principal del Aula */}
+                    {aula && (
+                    <LinearGradient
+                          colors={[colors.azulPrimario, colors.azulSecundario]} // 👈 usando variables
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                          style={styles.InformacionAula}
                         >
-                            <Text style={styles.textoArchivo}>Ver Archivo {index + 1}</Text>
-                        </TouchableOpacity>
-                    ))}
-
-                    {/* Formulario Para crear un comentario */}
-                    <View style={styles.ingresoComentario}>
-                        <TextInput
-                            style={styles.datosComentar}
-                            placeholder="Comentar"
-                            value={nuevoComentario}
-                            onChangeText={setNuevoComentario}
-                            onSubmitEditing={() => {
-                                handleCrearComentario(anuncio.ID, nuevoComentario);
-                                setNuevoComentario(""); // limpiar después
-                            }}
-                            />
-                            <TouchableOpacity
-                            style={styles.botonComentar}
-                            onPress={() => {
-                                handleCrearComentario(anuncio.ID, nuevoComentario);
-                                setNuevoComentario(""); // limpiar después
-                            }}
-                            >
-                            <Text style={styles.textoCrearAula}>Enviar</Text>
+                        <Text style={styles.titleAula}>{aula.Aula_Nombre}</Text>
+                        <Text style={styles.titleAulaProfe}>Profesor: {aula.Profesor}</Text>
+                    </LinearGradient>
+                    )}
+    
+                    {/* Botón para mostrar/ocultar formulario */}
+                    <View style={styles.tituloCrearAnuncio}>
+                        <Text style={styles.novedad}>Novedades</Text>
+                        <TouchableOpacity style={styles.botonCrearAula} onPress={() => setMostrarFormulario(!mostrarFormulario)}>
+                            <Text style={styles.textoCrearAula}> Crear Anuncio</Text>
                         </TouchableOpacity>
                     </View>
-                    
-                    {/* Formulario Para modificar el Anuncio */}
-                    {editandoAnuncioId === anuncio.ID && (
-                        <View style={styles.ModificarAnuncio}>
-                            <Text style={styles.titleAnuncio}>Modificar Anuncio</Text>
-
-                            <TextInput
+    
+                    {/* Formulario Para crear el Anuncio */}
+                    {mostrarFormulario && (
+                        <View style={styles.crearAnuncio}>
+                        <Text style={styles.titleAnuncio}>Crear Anuncio</Text>
+                        <TextInput
                             style={styles.datosFormulario}
                             placeholder="Título del Anuncio"
-                            value={anuncioEditado.titulo}
+                            value={nuevoAnuncio.titulo}
                             onChangeText={(text) =>
-                                setAnuncioEditado({ ...anuncioEditado, titulo: text })
+                            setNuevoAnuncio({ ...nuevoAnuncio, titulo: text })
                             }
-                            />
-
-                            <TextInput
-                            style={styles.datosDescipcionModificar}
+                        />
+                        <TextInput
+                            style={styles.datosDescipcion}
                             placeholder="Descripcion del anuncio"
                             multiline
                             numberOfLines={4}
-                            value={anuncioEditado.descripcion}
+                            value={nuevoAnuncio.descripcion}
                             onChangeText={(text) =>
-                                setAnuncioEditado({ ...anuncioEditado, descripcion: text })
+                            setNuevoAnuncio({ ...nuevoAnuncio, descripcion: text })
                             }
-                            />
-
-                            {/* Subir archivo */}
-                            <TouchableOpacity
-                            style={styles.input2Modificar}
+                        />
+    
+                        {/* 👇 botón de seleccionar archivo */}
+                        <TouchableOpacity
+                            style={styles.input2}
                             onPress={seleccionarArchivo}
-                            >
+                        >
                             <Text style={{ color: "gray" }}>
-                                {anuncioEditado.archivos ? "Archivo seleccionado ✅" : "Subir archivo"}
+                            {nuevoAnuncio.archivos ? "Archivo seleccionado ✅" : "Subir archivo"}
                             </Text>
+                        </TouchableOpacity>
+    
+                        <View style={styles.BotonesCrear}>
+                            <TouchableOpacity style={styles.botonCrearAula} onPress={handleCrearAnuncio}>
+                            <Text style={styles.textoCrearAula}> Publicar Anuncio</Text>
                             </TouchableOpacity>
-
-                            <View style={styles.BotonesCrear}>
-                            <TouchableOpacity
-                                style={styles.botonCrearAula}
-                                onPress={() => handleModificarAnuncio(anuncio.ID)}
-                            >
-                                <Text style={styles.textoCrearAula}> Modificar</Text>
+                            <TouchableOpacity style={styles.botonCrearAula} onPress={() => setMostrarFormulario(false)}>
+                            <Text style={styles.textoCrearAula}> Cancelar</Text>
                             </TouchableOpacity>
-
-                            <TouchableOpacity
-                                style={styles.botonCrearAula}
-                                onPress={() => setEditandoAnuncioId(null)}
-                            >
-                                <Text style={styles.textoCrearAula}> Cancelar</Text>
-                            </TouchableOpacity>
-                            </View>
+                        </View>
                         </View>
                     )}
-
-                    {/* Informacion del Comentario */}
-                    {comentarios[anuncio.ID]?.map((c) => (
-                        <View key={c.ID} style={styles.verComentario}>
-                            <View style={styles.verAnuncioFoto}>
-                            <View style={styles.info1}>
-                                <Image
-                                source={{ uri: `${STATIC_URL}/imagenes/${c.RutaFoto}` }}
-                                style={styles.img1}
-                                resizeMode="contain"
-                                />
-                                <Text style={styles.nombreUsuario}>{c.Nombre_Usuario}</Text>
-                            </View>
-                            <Text style={styles.fechaAnuncio}>
-                                {new Date(c.Fecha).toLocaleDateString()}
-                            </Text>
-                            </View>
-
-                            <Text style={styles.textoAnuncio}>{c.Descripcion}</Text>
-
+    
+                    {/* Conteneder del Anuncio y sus funciones */}
+                    {anuncios.map((anuncio) => (
+                    <View key={anuncio.ID} style={styles.verAnuncio}>
+    
+                        {/* Botones para eliminar y modificar el anuncio */}
+                        <View style={styles.ControlAnuncio}>
                             <TouchableOpacity
-                            style={styles.botonEliminar}
-                            onPress={() =>
-                                Alert.alert(
-                                "Confirmar eliminación",
-                                "¿Estás seguro de eliminar este comentario?",
-                                [
-                                    { text: "Cancelar", style: "cancel" },
-                                    { text: "Eliminar", style: "destructive", onPress: () => handleEliminarComentario(c.ID, anuncio.ID) }
-                                ]
-                                )
-                            }
-                            >
-                            <Text style={styles.textoCrearAula}> Eliminar</Text>
+                                style={styles.botonAula}
+                                onPress={() => {
+                                    setEditandoAnuncioId(anuncio.ID);
+                                    setAnuncioEditado({
+                                    titulo: anuncio.Titulo_Anuncio,
+                                    descripcion: anuncio.Descripcion_Anuncio,
+                                    archivos: null, // se cargará si selecciona uno nuevo
+                                    });
+                                }}
+                                >
+                                <Text style={styles.textoBotonAula}> Modificar</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={() =>
+                                    Alert.alert(
+                                    "Confirmar eliminación",
+                                    "¿Estás seguro de que quieres eliminar este anuncio?",
+                                    [
+                                        { text: "Cancelar", style: "cancel" },
+                                        { text: "Eliminar", style: "destructive", onPress: () => handleEliminarAnuncio(anuncio.ID) }
+                                    ]
+                                    )
+                                }
+                                >
+                                <Text style={styles.textoBotonAula}> Eliminar</Text>
                             </TouchableOpacity>
                         </View>
+    
+                        {/* Informacion del Anuncio */}
+                        <View style={styles.verAnuncioFoto}>
+                            <View style={styles.info1}>
+                                <Image
+                                    source={{ uri: `${STATIC_URL}/imagenes/${anuncio.RutaFoto}` }}
+                                    style={styles.img1}
+                                    resizeMode="contain"
+                                />
+                                <Text style={styles.nombreUsuario}>{anuncio.Profesor}</Text>
+                            </View>
+                            <Text style={styles.fechaAnuncio}>{new Date(anuncio.Fecha_Anuncio).toLocaleDateString()}</Text>
+                        </View>
+    
+                        <Text style={styles.textoTitulo}>{anuncio.Titulo_Anuncio}</Text>
+                        <Text style={styles.textoDescripcion}>
+                            {anuncio.Descripcion_Anuncio}
+                            </Text>
+                        {anuncio.Enlace_Anuncio && anuncio.Enlace_Anuncio.split(";").map((archivo, index) => (
+                            <TouchableOpacity
+                                key={index}
+                                onPress={() => Linking.openURL(`${STATIC_URL}/imagenes/${archivo.trim()}`)}
+                            >
+                                <Text style={styles.textoArchivo}>Ver Archivo {index + 1}</Text>
+                            </TouchableOpacity>
+                        ))}
+    
+                        {/* Formulario Para crear un comentario */}
+                        <View style={styles.ingresoComentario}>
+                            <TextInput
+                                style={styles.datosComentar}
+                                placeholder="Comentar"
+                                value={nuevoComentario}
+                                onChangeText={setNuevoComentario}
+                                onSubmitEditing={() => {
+                                    handleCrearComentario(anuncio.ID, nuevoComentario);
+                                    setNuevoComentario(""); // limpiar después
+                                }}
+                                />
+                                <TouchableOpacity
+                                style={styles.botonComentar}
+                                onPress={() => {
+                                    handleCrearComentario(anuncio.ID, nuevoComentario);
+                                    setNuevoComentario(""); // limpiar después
+                                }}
+                                >
+                                <Text style={styles.textoCrearAula}>Enviar</Text>
+                            </TouchableOpacity>
+                        </View>
+                        
+                        {/* Formulario Para modificar el Anuncio */}
+                        {editandoAnuncioId === anuncio.ID && (
+                            <View style={styles.ModificarAnuncio}>
+                                <Text style={styles.titleAnuncio}>Modificar Anuncio</Text>
+    
+                                <TextInput
+                                style={styles.datosFormulario}
+                                placeholder="Título del Anuncio"
+                                value={anuncioEditado.titulo}
+                                onChangeText={(text) =>
+                                    setAnuncioEditado({ ...anuncioEditado, titulo: text })
+                                }
+                                />
+    
+                                <TextInput
+                                style={styles.datosDescipcionModificar}
+                                placeholder="Descripcion del anuncio"
+                                multiline
+                                numberOfLines={4}
+                                value={anuncioEditado.descripcion}
+                                onChangeText={(text) =>
+                                    setAnuncioEditado({ ...anuncioEditado, descripcion: text })
+                                }
+                                />
+    
+                                {/* Subir archivo */}
+                                <TouchableOpacity
+                                style={styles.input2Modificar}
+                                onPress={seleccionarArchivo}
+                                >
+                                <Text style={{ color: "gray" }}>
+                                    {anuncioEditado.archivos ? "Archivo seleccionado ✅" : "Subir archivo"}
+                                </Text>
+                                </TouchableOpacity>
+    
+                                <View style={styles.BotonesCrear}>
+                                <TouchableOpacity
+                                    style={styles.botonCrearAula}
+                                    onPress={() => handleModificarAnuncio(anuncio.ID)}
+                                >
+                                    <Text style={styles.textoCrearAula}> Modificar</Text>
+                                </TouchableOpacity>
+    
+                                <TouchableOpacity
+                                    style={styles.botonCrearAula}
+                                    onPress={() => setEditandoAnuncioId(null)}
+                                >
+                                    <Text style={styles.textoCrearAula}> Cancelar</Text>
+                                </TouchableOpacity>
+                                </View>
+                            </View>
+                        )}
+    
+                        {/* Informacion del Comentario */}
+                        {comentarios[anuncio.ID]?.map((c) => (
+                            <View key={c.ID} style={styles.verComentario}>
+                                <View style={styles.verAnuncioFoto}>
+                                <View style={styles.info1}>
+                                    <Image
+                                    source={{ uri: `${STATIC_URL}/imagenes/${c.RutaFoto}` }}
+                                    style={styles.img1}
+                                    resizeMode="contain"
+                                    />
+                                    <Text style={styles.nombreUsuario}>{c.Nombre_Usuario}</Text>
+                                </View>
+                                <Text style={styles.fechaAnuncio}>
+                                    {new Date(c.Fecha).toLocaleDateString()}
+                                </Text>
+                                </View>
+    
+                                <Text style={styles.textoAnuncio}>{c.Descripcion}</Text>
+                                
+                                {usuarioLogueado && c.usuario_id === usuarioLogueado.id && (
+                                <TouchableOpacity 
+                                    style={styles.botonEliminar} 
+                                    onPress={() => 
+                                    Alert.alert( "Confirmar eliminación", "¿Estás seguro de eliminar este comentario?", 
+                                    [ { text: "Cancelar", style: "cancel" }, { text: "Eliminar", style: "destructive", 
+                                    onPress: () => handleEliminarComentario(c.ID, anuncio.ID) 
+                                    } ] ) } > 
+                                    <Text style={styles.textoCrearAula}> Eliminar</Text> 
+                                </TouchableOpacity>
+                                )}
+                            </View>
+                        ))}
+                    </View>
                     ))}
+
                 </View>
-                ))}
-            </View>
 
-        <Footer />
-
-        </ScrollView>
-
-    </View>
-  );
+            <Footer />
+            
+            </ScrollView>
+                    
+                    
+            
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
@@ -555,13 +567,12 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     
-    centroUsuario: {
+    centroProfeso: {
         flex: 1,
         paddingVertical: 20,
         alignItems: 'center',
     },
-
-    tituloUsuario: {
+tituloUsuario: {
         minWidth: '90%',
         height: 'auto',
         flexDirection: 'row',
@@ -811,4 +822,4 @@ const styles = StyleSheet.create({
     textoBotonAula:{
         textDecorationLine: 'underline'
     }
-});
+})
