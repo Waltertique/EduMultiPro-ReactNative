@@ -1,102 +1,119 @@
-import { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  StyleSheet,
+  FlatList,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import Icon from "react-native-vector-icons/FontAwesome5";
+import colors from "../colors";
 
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-
-import colors from '../colors'; // 👈 archivo donde guardamos las variables
+// 👉 Opciones del menú para ALUMNO
+const opciones = [
+  { name: "Inicio", icon: "home", route: "PrincipalAlumno" },
+  { name: "Noticias", icon: "newspaper", route: "NoticiaAlumno" },
+  { name: "Horarios", icon: "calendar-alt", route: "HorarioAlumno" },
+  { name: "Aulas", icon: "chalkboard", route: "ClaseAlumno" },
+  { name: "Usuario", icon: "user", route: "PerfilAlumno" },
+  { name: "Salir", icon: "sign-out-alt", route: "Login" },
+];
 
 export default function DesplegableAlumno() {
-  const [abierto, setAbierto] = useState(false);
-
-  const toggleMenu = () => {
-    setAbierto(!abierto);
-  };
+  const navigation = useNavigation();
+  const [visible, setVisible] = useState(false);
 
   return (
-    <View style={styles.contenedor}>
+    <View style={styles.container}>
       {/* Botón principal */}
-      <TouchableOpacity style={styles.boton} onPress={toggleMenu}>
-        <Text style={styles.textoBoton}>Opciones </Text>
-        <FontAwesome name={abierto ? "angle-up" : "angle-down"} size={20} color="#fff" />
+      <TouchableOpacity
+        style={styles.botonPrincipal}
+        onPress={() => setVisible(true)}
+      >
+        <Text style={styles.textoBoton}>Opciones</Text>
       </TouchableOpacity>
 
-      {/* Opciones desplegables */}
-      {abierto && (
-        <View style={styles.menu}>
-            
-        <TouchableOpacity style={styles.opcion}>
-            <FontAwesome name="star" size={16} color="#fff" />
-            <Text style={styles.textoOpcion}> Inicio</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.opcion}>
-            <FontAwesome name="newspaper-o" size={16} color="#fff" />
-            <Text style={styles.textoOpcion}> Noticias</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.opcion}>
-            <FontAwesome name="calendar" size={16} color="#fff" />
-            <Text style={styles.textoOpcion}> Horarios</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.opcion}>
-            <FontAwesome5 name="layer-group" size={16} color="#fff" />
-            <Text style={styles.textoOpcion}> Clases</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.opcion}>
-            <FontAwesome name="user" size={16} color="#fff" />
-            <Text style={styles.textoOpcion}> Usuario</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.opcion}>
-            <FontAwesome name="sign-out" size={16} color="#fff" />
-            <Text style={styles.textoOpcion}> Salir</Text>
-          </TouchableOpacity>
-          
-        </View>
-      )}
+      {/* Modal desplegable */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={visible}
+        onRequestClose={() => setVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          onPress={() => setVisible(false)}
+          activeOpacity={1}
+        >
+          <View style={styles.modalContenido}>
+            <FlatList
+              data={opciones}
+              keyExtractor={(item) => item.name}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.opcion}
+                  onPress={() => {
+                    setVisible(false);
+                    navigation.navigate(item.route);
+                  }}
+                >
+                  <Icon
+                    name={item.icon}
+                    size={20}
+                    color={colors.azul}
+                    style={styles.icono}
+                  />
+                  <Text style={styles.textoOpcion}>{item.name}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  contenedor: {
-    width: '100%',
+  container: {
+    padding: 10,
+    backgroundColor: colors.fondo,
   },
-  boton: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    height: 50,
+  botonPrincipal: {
     backgroundColor: colors.azulPrimario,
-    borderWidth: 2,
-    borderColor: colors.azulSecundario,
-    paddingHorizontal: 15,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
   },
   textoBoton: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: colors.blanco2,
     fontSize: 16,
+    fontWeight: "bold",
   },
-  menu: {
-    backgroundColor: colors.azulPrimario,
-    borderWidth: 2,
-    borderColor: colors.azulSecundario,
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContenido: {
+    backgroundColor: colors.blanco2,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
   },
   opcion: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.azulSecundario,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+  },
+  icono: {
+    marginRight: 12,
   },
   textoOpcion: {
-    color: '#fff',
-    marginLeft: 10,
-    fontSize: 15,
+    fontSize: 16,
+    color: colors.grisOscuro,
   },
 });

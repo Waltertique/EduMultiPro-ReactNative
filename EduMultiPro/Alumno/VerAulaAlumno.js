@@ -20,9 +20,10 @@ import colors from "../colors";
 export default function VerAulaAlumno() {
   const route = useRoute();
   const navigation = useNavigation();
-  const { id } = route.params; // id del aula
+  const { id } = route.params;
 
-  const usuario = JSON.parse(localStorage.getItem("usuario")) || null;
+  // ⚠️ En React Native no hay localStorage, toca usar AsyncStorage.
+  const usuario = { id: 1, rol: "R001" }; // reemplaza luego con AsyncStorage
   const usuarioId = usuario?.id;
   const rol = usuario?.rol;
 
@@ -42,7 +43,6 @@ export default function VerAulaAlumno() {
         const anunciosData = await resAnuncios.json();
         setAnuncios(anunciosData);
 
-        // comentarios
         const comentariosPorAnuncio = {};
         for (const anuncio of anunciosData) {
           const resC = await fetch(
@@ -99,11 +99,10 @@ export default function VerAulaAlumno() {
   return (
     <View style={styles.container}>
       <Encabezado />
-
-      {/* menú superior del aula */}
       <NavAulaAlumno navigation={navigation} id={id} />
 
-      <ScrollView contentContainerStyle={{ padding: 15 }}>
+      {/* 🔹 Contenido con scroll */}
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Banner Aula */}
         <View style={styles.banner}>
           <Text style={styles.bannerTitle}>{aula.Aula_Nombre}</Text>
@@ -204,15 +203,17 @@ export default function VerAulaAlumno() {
             </View>
           </View>
         ))}
+        
+        {/* ✅ Footer integrado en el ScrollView (sin posición absoluta) */}
+        <Footer />
       </ScrollView>
-
-      <Footer />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.fondo },
+  scrollContent: { padding: 15 },
   loading: { flex: 1, justifyContent: "center", alignItems: "center" },
   banner: { marginBottom: 20, alignItems: "center" },
   bannerTitle: { fontSize: 22, fontWeight: "bold", color: colors.azulPrimario },
@@ -257,4 +258,5 @@ const styles = StyleSheet.create({
   comentario: { flexDirection: "row", alignItems: "center", marginBottom: 5 },
   comentarioAvatar: { width: 25, height: 25, borderRadius: 15, marginRight: 5 },
   comentarioAutor: { fontWeight: "bold", fontSize: 12 },
+  // Eliminamos el estilo footerWrapper que usaba posición absoluta
 });
