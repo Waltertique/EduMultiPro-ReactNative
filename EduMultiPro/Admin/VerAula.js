@@ -277,7 +277,7 @@ export default function VerAula({ navigation }) {
                 {/* Navegardor de fucniones del Aula */}
                 <View style={styles.tituloUsuario}>
                     
-                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('VerAula')}>
+                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('VerAula', { id: route.params.id })}>
                         <Text style={styles.textoControlAula}> Inicio</Text>
                     </TouchableOpacity>
 

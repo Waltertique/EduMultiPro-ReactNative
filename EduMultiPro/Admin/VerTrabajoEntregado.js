@@ -118,7 +118,7 @@ export default function VerTrabajoEntregado({ navigation }) {
                         <Text style={styles.textoControlAula}> Trabajo</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('VerTrabajoEntregado')}>
+                    <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('VerTrabajoEntregado', { id, aula_id })}>
                         <Text style={styles.textoControlAula}> Entregas</Text>
                     </TouchableOpacity>
 

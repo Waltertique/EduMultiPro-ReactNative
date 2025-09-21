@@ -10,6 +10,9 @@ import ClaseAlumno from './ClaseAlumno';
 import PerfilAlumno from './PerfilAlumno';
 
 import VerNoticiaAlumno from './VerNoticiaAlumno';
+import VerAulaAlumno from './VerAulaAlumno';
+import TrabajoAlumno from './TrabajoAlumno';
+import PersonaAlumno from './PersonaAlumno';
 
 
 // 👉 Importamos el menú desplegable
@@ -58,6 +61,9 @@ export default function AlumnoStack() {
         />
 
         <Stack.Screen name="VerNoticiaAlumno" component={VerNoticiaAlumno} options={{ headerShown: false }} />
+        <Stack.Screen name="VerAulaAlumno" component={VerAulaAlumno} options={{ headerShown: false }} />
+        <Stack.Screen name="TrabajoAlumno" component={TrabajoAlumno} options={{ headerShown: false }} />
+        <Stack.Screen name="PersonaAlumno" component={PersonaAlumno} options={{ headerShown: false }} />
 
     </Stack.Navigator>
   );

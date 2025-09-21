@@ -144,7 +144,7 @@ export default function VerTrabajoProfesor({ navigation }) {
                     {/* Navegardor de fucniones del trabajo */}
                     <View style={styles.tituloTrabajo}>
                         
-                        <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('VerTrabajoProfesor')}>
+                        <TouchableOpacity style={styles.botonControlAula} onPress={() => navigation.navigate('VerTrabajoProfesor', { id, aula_id })}>
                             <Text style={styles.textoControlAula}> Trabajo</Text>
                         </TouchableOpacity>
     
