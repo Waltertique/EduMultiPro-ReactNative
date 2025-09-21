@@ -112,7 +112,7 @@ export default function TrabajoAlumno({ navigation, route }) {
                                     <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{new Date(trabajo.Fecha_Trabajo).toLocaleDateString()}</Text></DataTable.Cell>
     
                                     <DataTable.Cell style={styles.tablaBody}>
-                                        <TouchableOpacity style={styles.botonAccion} onPress={() => navigation.navigate('VerTrabajoProfesor', { id: trabajo.ID, aula_id: id })}>
+                                        <TouchableOpacity style={styles.botonAccion} onPress={() => navigation.navigate('VerTrabajoAlumno', { id: trabajo.ID, aula_id: id })}>
                                             <FontAwesome name="info" size={16} color="#fff" />
                                         </TouchableOpacity>
                                     </DataTable.Cell>
