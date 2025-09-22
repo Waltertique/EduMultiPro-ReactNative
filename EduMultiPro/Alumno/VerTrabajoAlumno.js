@@ -14,7 +14,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import Encabezado from "../Encabezado";
 import Footer from "../footer";
-import DesplegableAlumno from "./DesplegableAlumno";
 import colors from "../colors";
 
 const ImgTrabajo = require("../assets/f9.png");
@@ -130,10 +129,9 @@ export default function VerTrabajoAlumno({ route, navigation }) {
   return (
     <View style={styles.contenedor}>
       <Encabezado />
-      <DesplegableAlumno navigation={navigation} />
 
       <ScrollView contentContainerStyle={styles.centroAlumno}>
-        {/* Botones de navegación */}
+        {/* 🔹 Botones de navegación */}
         <View style={styles.botones}>
           <TouchableOpacity
             style={styles.boton}
@@ -144,63 +142,67 @@ export default function VerTrabajoAlumno({ route, navigation }) {
               })
             }
           >
-            <Text style={styles.botonTexto}>Ver Subidos</Text>
+            <Text style={styles.botonTexto}>📂 Ver Subidos</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.boton, styles.botonCerrar]}
             onPress={() => navigation.navigate("TrabajoAlumno", { id: aulaId })}
           >
-            <Text style={styles.botonTexto}>✖</Text>
+            <Text style={styles.botonTexto}>✖ Cerrar</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Título y descripción */}
-        <View style={styles.tituloContainer}>
-          <Image source={ImgTrabajo} style={styles.imgTrabajo} />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.titulo}>{trabajo.Titulo_Trabajo || ""}</Text>
-            <Text style={styles.fecha}>
-              Fecha de entrega:{" "}
-              {trabajo.Fecha_Trabajo
-                ? new Date(trabajo.Fecha_Trabajo).toLocaleDateString()
-                : ""}
+        {/* 🔹 Título y descripción */}
+        <View style={styles.card}>
+          <View style={styles.tituloContainer}>
+            <Image source={ImgTrabajo} style={styles.imgTrabajo} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.titulo}>{trabajo.Titulo_Trabajo || ""}</Text>
+              <Text style={styles.fecha}>
+                Fecha de entrega:{" "}
+                {trabajo.Fecha_Trabajo
+                  ? new Date(trabajo.Fecha_Trabajo).toLocaleDateString()
+                  : ""}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.descripcion}>
+            <Text style={styles.subtitulo}>Descripción</Text>
+            <Text style={styles.descripcionTexto}>
+              {trabajo.Descripcion_Trabajo || ""}
             </Text>
+
+            {archivos.map((archivo) => (
+              <TouchableOpacity
+                key={archivo.ID}
+                onPress={() =>
+                  Alert.alert(
+                    "Abrir archivo",
+                    `Abrir: http://192.168.1.53:3000/imagenes/${archivo.ruta_archivo}`
+                  )
+                }
+              >
+                <Text style={styles.enlace}>📎 {archivo.nombre_original}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
-        <View style={styles.descripcion}>
-          <Text style={styles.subtitulo}>Descripción:</Text>
-          <Text>{trabajo.Descripcion_Trabajo || ""}</Text>
-
-          {archivos.map((archivo) => (
-            <TouchableOpacity
-              key={archivo.ID}
-              onPress={() =>
-                Alert.alert(
-                  "Abrir archivo",
-                  `Abrir: http://192.168.1.53:3000/imagenes/${archivo.ruta_archivo}`
-                )
-              }
-            >
-              <Text style={styles.enlace}>{archivo.nombre_original}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Comentarios */}
-        <View style={styles.comentarios}>
-          <Text style={styles.subtitulo}>Agregar comentarios</Text>
+        {/* 🔹 Comentarios */}
+        <View style={styles.card}>
+          <Text style={styles.subtitulo}>Comentarios</Text>
 
           <View style={styles.comentarioForm}>
             <TextInput
               style={styles.input}
-              placeholder="Escribe tu comentario"
+              placeholder="Escribe tu comentario..."
               value={nuevoComentario}
               onChangeText={setNuevoComentario}
             />
             <TouchableOpacity style={styles.boton} onPress={handleComentar}>
-              <Text style={styles.botonTexto}>Comentar</Text>
+              <Text style={styles.botonTexto}>Enviar</Text>
             </TouchableOpacity>
           </View>
 
@@ -215,14 +217,21 @@ export default function VerTrabajoAlumno({ route, navigation }) {
                   }}
                   style={styles.foto}
                 />
-                <Text style={styles.nombre}>{comentario.Nombre_Usuario || ""}</Text>
-                <Text style={styles.fecha}>
-                  {comentario.Fecha
-                    ? new Date(comentario.Fecha).toLocaleDateString()
-                    : ""}
-                </Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.nombre}>
+                    {comentario.Nombre_Usuario || ""}
+                  </Text>
+                  <Text style={styles.fecha}>
+                    {comentario.Fecha
+                      ? new Date(comentario.Fecha).toLocaleDateString()
+                      : ""}
+                  </Text>
+                </View>
               </View>
-              <Text>{comentario.Descripcion || ""}</Text>
+
+              <Text style={styles.textoComentario}>
+                {comentario.Descripcion || ""}
+              </Text>
 
               <TouchableOpacity
                 style={styles.eliminarBtn}
@@ -244,6 +253,8 @@ const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: colors.fondo },
   centroAlumno: { flexGrow: 1, padding: 20 },
   loading: { flex: 1, justifyContent: "center", alignItems: "center" },
+
+  // 🔹 Botones arriba
   botones: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -251,20 +262,45 @@ const styles = StyleSheet.create({
   },
   boton: {
     backgroundColor: colors.azulPrimario,
-    padding: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
     borderRadius: 8,
-    marginHorizontal: 5,
+    elevation: 2,
   },
   botonCerrar: { backgroundColor: "#b00020" },
-  botonTexto: { color: "#fff", fontWeight: "bold" },
-  tituloContainer: { flexDirection: "row", alignItems: "center", marginBottom: 15 },
-  imgTrabajo: { width: 40, height: 40, marginRight: 10 },
+  botonTexto: { color: "#fff", fontWeight: "bold", fontSize: 14 },
+
+  // 🔹 Card general
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 20,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+
+  // 🔹 Título
+  tituloContainer: { flexDirection: "row", alignItems: "center", marginBottom: 10 },
+  imgTrabajo: { width: 45, height: 45, marginRight: 12 },
   titulo: { fontSize: 20, fontWeight: "bold", color: colors.azulPrimario },
-  fecha: { fontSize: 14, color: "#666" },
-  descripcion: { marginBottom: 20 },
-  subtitulo: { fontWeight: "bold", fontSize: 16, marginVertical: 10 },
-  enlace: { color: colors.azulPrimario, textDecorationLine: "underline" },
-  comentarios: { marginTop: 20 },
+  fecha: { fontSize: 13, color: "#666", marginTop: 2 },
+
+  // 🔹 Descripción
+  descripcion: { marginTop: 10 },
+  subtitulo: { fontWeight: "bold", fontSize: 16, marginBottom: 8, color: "#333" },
+  descripcionTexto: { fontSize: 14, color: "#444", lineHeight: 20 },
+  enlace: {
+    color: colors.azulPrimario,
+    marginTop: 5,
+    fontSize: 14,
+    textDecorationLine: "underline",
+  },
+
+  // 🔹 Comentarios
   comentarioForm: { flexDirection: "row", alignItems: "center", marginBottom: 10 },
   input: {
     flex: 1,
@@ -275,14 +311,18 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   comentario: {
-    backgroundColor: "#f1f1f1",
-    padding: 10,
+    backgroundColor: "#f9f9f9",
+    padding: 12,
     borderRadius: 8,
     marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#eee",
   },
   comentarioHeader: { flexDirection: "row", alignItems: "center", marginBottom: 5 },
   foto: { width: 35, height: 35, borderRadius: 18, marginRight: 8 },
-  nombre: { fontWeight: "bold", marginRight: 8 },
+  nombre: { fontWeight: "bold", color: "#222" },
+  textoComentario: { fontSize: 14, color: "#333" },
+
   eliminarBtn: { marginTop: 5, alignSelf: "flex-end" },
-  eliminarTexto: { color: "#b00020", fontSize: 12 },
+  eliminarTexto: { color: "#b00020", fontSize: 12, fontWeight: "600" },
 });

@@ -7,13 +7,13 @@ import {
   TouchableOpacity,
   StyleSheet,
   FlatList,
+  ActivityIndicator,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import Encabezado from "../Encabezado";
 import Footer from "../footer";
-import DesplegableAlumno from "./DesplegableAlumno";
-import NavAulaAlumno from "./NavAulaAlumno"; // Importamos el Nav
+import NavAulaAlumno from "./NavAulaAlumno"; // 🔹 Nav
 import colors from "../colors";
 
 export default function TrabajoAlumno({ navigation, route }) {
@@ -60,12 +60,12 @@ export default function TrabajoAlumno({ navigation, route }) {
         {new Date(item.Fecha_Trabajo).toLocaleDateString("es-ES")}
       </Text>
       <TouchableOpacity
-        style={[styles.cell, styles.btnInformacion]}
+        style={styles.btnInformacion}
         onPress={() =>
           navigation.navigate("VerTrabajoAlumno", { trabajoId: item.ID, aulaId: id })
         }
       >
-        <Text style={styles.btnText}>ℹ️</Text>
+        <Text style={styles.btnText}>Ver</Text>
       </TouchableOpacity>
     </View>
   );
@@ -73,20 +73,21 @@ export default function TrabajoAlumno({ navigation, route }) {
   return (
     <View style={styles.contenedor}>
       <Encabezado />
-      <DesplegableAlumno navigation={navigation} />
 
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <View style={styles.centroAlumno}>
-          {/* 🔹 NavAulaAlumno */}
+          {/* 🔹 Nav de Aula */}
           <NavAulaAlumno navigation={navigation} id={id} />
 
           <View style={styles.tituloTrabajoAlumno}>
-            <Text style={styles.titulo}>Trabajos</Text>
+            <Text style={styles.titulo}>📂 Trabajos</Text>
           </View>
 
           <View style={styles.tablaContainer}>
             {loading ? (
-              <Text style={{ textAlign: "center" }}>Cargando...</Text>
+              <ActivityIndicator size="large" color="#007bff" style={{ marginTop: 20 }} />
+            ) : trabajos.length === 0 ? (
+              <Text style={styles.noData}>No hay trabajos disponibles.</Text>
             ) : (
               <FlatList
                 data={trabajos}
@@ -96,7 +97,7 @@ export default function TrabajoAlumno({ navigation, route }) {
                   <View style={styles.rowHeader}>
                     <Text style={[styles.cell, styles.headerCell]}>Título</Text>
                     <Text style={[styles.cell, styles.headerCell]}>Fecha Entrega</Text>
-                    <Text style={[styles.cell, styles.headerCell]}>Info</Text>
+                    <Text style={[styles.cell, styles.headerCell]}>Acción</Text>
                   </View>
                 }
               />
@@ -123,46 +124,70 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   tituloTrabajoAlumno: {
-    marginVertical: 10,
+    marginVertical: 15,
     alignItems: "center",
   },
   titulo: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "bold",
     color: "#007bbd",
   },
   tablaContainer: {
     width: "95%",
     marginTop: 10,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    overflow: "hidden",
+    elevation: 2, // sombra en Android
+    shadowColor: "#000", // sombra en iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
   row: {
     flexDirection: "row",
     borderBottomWidth: 1,
-    borderColor: "#ccc",
-    paddingVertical: 8,
+    borderColor: "#eee",
+    paddingVertical: 10,
     alignItems: "center",
   },
   rowHeader: {
     flexDirection: "row",
     backgroundColor: "#007bff",
-    paddingVertical: 8,
+    paddingVertical: 10,
   },
   cell: {
     flex: 1,
     textAlign: "center",
+    fontSize: 14,
+    paddingHorizontal: 5,
+  },
+  tituloTrabajoAlumnoText: {
+    fontWeight: "bold",
+    fontSize: 16,
   },
   headerCell: {
     color: "#fff",
     fontWeight: "bold",
+    fontSize: 15,
   },
   btnInformacion: {
     backgroundColor: "#007bff",
-    padding: 5,
-    borderRadius: 5,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    marginHorizontal: 5,
   },
   btnText: {
     color: "#fff",
     fontWeight: "bold",
+    fontSize: 13,
     textAlign: "center",
+  },
+  noData: {
+    textAlign: "center",
+    marginVertical: 20,
+    fontSize: 16,
+    color: "#555",
   },
 });

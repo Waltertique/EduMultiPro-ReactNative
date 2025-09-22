@@ -4,206 +4,240 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  FlatList,
   ActivityIndicator,
-  Alert
+  TextInput,
+  Alert,
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
+import { DataTable } from "react-native-paper";
 
 import Encabezado from "../Encabezado";
 import Footer from "../footer";
 import NavAulaAlumno from "./NavAulaAlumno";
 import colors from "../colors";
+import { apiFetch } from "../api";
 
 export default function PersonasAlumno() {
   const route = useRoute();
   const navigation = useNavigation();
   const { id } = route.params;
 
-  // ⚠️ En React Native no hay localStorage, toca usar AsyncStorage.
-  // Para este ejemplo, simulamos un usuario
-  const usuario = { id: 1, rol: "R001" }; // reemplaza luego con AsyncStorage
-  const usuarioId = usuario?.id;
-
-  const [compañeros, setCompañeros] = useState([]);
+  const [integrantes, setIntegrantes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [cursoId, setCursoId] = useState(null);
+
+  // estados de búsqueda y paginación
+  const [page, setPage] = useState(0);
+  const itemsPerPage = 10;
+  const [search, setSearch] = useState("");
+
+  const cargarIntegrantes = async () => {
+    try {
+      const res = await apiFetch(`/Cursos/${id}/integrantes`);
+      const data = await res.json();
+      setIntegrantes(data);
+    } catch (error) {
+      console.error("Error al cargar integrantes:", error);
+      Alert.alert("❌ Error", "No se pudieron cargar los integrantes");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchCompañeros = async () => {
-      try {
-        // Primero obtenemos el aula para saber el curso_id
-        const resAula = await fetch(`http://192.168.1.53:3000/api/edumultipro/Aulas/${id}`);
-        if (!resAula.ok) {
-          throw new Error(`Error HTTP: ${resAula.status}`);
-        }
-        
-        const aula = await resAula.json();
-        console.log("Datos del aula:", aula);
-        
-        // Extraemos el curso_id del aula (ajusta según la estructura real de tu respuesta)
-        const cursoId = aula.curso_id || aula.ID; // Ajusta según tu estructura
-        
-        // Ahora obtenemos los integrantes del curso usando la ruta correcta
-        const resCompañeros = await fetch(`http://192.168.1.53:3000/api/edumultipro/Cursos/${cursoId}/integrantes`);
-        if (!resCompañeros.ok) {
-          throw new Error(`Error HTTP: ${resCompañeros.status}`);
-        }
-        
-        const compañerosData = await resCompañeros.json();
-        console.log("Compañeros obtenidos:", compañerosData);
-        
-        setCompañeros(compañerosData);
-        setCursoId(cursoId);
-      } catch (err) {
-        console.error("Error cargando compañeros:", err);
-        Alert.alert("Error", "No se pudieron cargar los compañeros del curso");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCompañeros();
+    cargarIntegrantes();
   }, [id]);
 
   if (loading) {
     return (
       <View style={styles.loading}>
         <ActivityIndicator size="large" color={colors.azulPrimario} />
-        <Text>Cargando compañeros...</Text>
+        <Text style={{ marginTop: 10 }}>Cargando compañeros...</Text>
       </View>
     );
   }
 
-  const renderItem = ({ item }) => (
-    <View style={styles.compañeroItem}>
-      <View style={styles.avatarPlaceholder}>
-        <Text style={styles.avatarText}>
-          {item.Primer_Nombre?.charAt(0)}{item.Primer_Apellido?.charAt(0)}
-        </Text>
-      </View>
-      <View style={styles.compañeroInfo}>
-        <Text style={styles.nombre}>
-          {item.Primer_Nombre} {item.Segundo_Nombre || ''} {item.Primer_Apellido} {item.Segundo_Apellido || ''}
-        </Text>
-        <Text style={styles.id}>ID: {item.ID}</Text>
-      </View>
-    </View>
+  // 🔍 Filtrado por búsqueda
+  const filteredData = integrantes.filter(
+    (item) =>
+      item.ID.toString().includes(search) ||
+      item.Primer_Nombre?.toLowerCase().includes(search.toLowerCase()) ||
+      item.Segundo_Nombre?.toLowerCase().includes(search.toLowerCase()) ||
+      item.Primer_Apellido?.toLowerCase().includes(search.toLowerCase()) ||
+      item.Segundo_Apellido?.toLowerCase().includes(search.toLowerCase())
   );
+
+  // 📄 Paginación
+  const from = page * itemsPerPage;
+  const to = Math.min((page + 1) * itemsPerPage, filteredData.length);
 
   return (
     <View style={styles.container}>
       <Encabezado />
       <NavAulaAlumno navigation={navigation} id={id} />
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Banner Aula */}
+      <ScrollView contentContainerStyle={{ flexGrow: 1, alignItems: "center" }}>
+        {/* Banner */}
         <View style={styles.banner}>
-          <Text style={styles.bannerTitle}>Compañeros de Curso</Text>
+          <Text style={styles.bannerTitle}>👥 Compañeros de Curso</Text>
           <Text style={styles.bannerSubtitle}>
-            {compañeros.length} {compañeros.length === 1 ? 'compañero' : 'compañeros'} en total
+            {integrantes.length}{" "}
+            {integrantes.length === 1 ? "compañero" : "compañeros"} en total
           </Text>
-          {cursoId && <Text style={styles.cursoId}>Curso ID: {cursoId}</Text>}
         </View>
 
-        {/* Lista de compañeros */}
-        <FlatList
-          data={compañeros}
-          keyExtractor={(item) => item.ID.toString()}
-          renderItem={renderItem}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No hay compañeros en este curso</Text>
-            </View>
-          }
-        />
-      </ScrollView>
+        <View style={styles.contenedorTabla}>
+          {/* Barra de búsqueda */}
+          <TextInput
+            style={styles.searchInput}
+            placeholder="🔎 Buscar compañero..."
+            placeholderTextColor={colors.gris}
+            value={search}
+            onChangeText={(text) => {
+              setSearch(text);
+              setPage(0);
+            }}
+          />
 
-      <Footer />
+          <Text style={styles.infoRegistros}>
+            Mostrando {from + 1}-{to} de {filteredData.length} registros
+          </Text>
+
+          {/* Scroll horizontal para tabla */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <DataTable>
+              <DataTable.Header style={styles.headerRow}>
+                <DataTable.Title style={styles.tablaHead}>ID</DataTable.Title>
+                <DataTable.Title style={styles.tablaHead}>
+                  P Nombre
+                </DataTable.Title>
+                <DataTable.Title style={styles.tablaHead}>
+                  S Nombre
+                </DataTable.Title>
+                <DataTable.Title style={styles.tablaHead}>
+                  P Apellido
+                </DataTable.Title>
+                <DataTable.Title style={styles.tablaHead}>
+                  S Apellido
+                </DataTable.Title>
+              </DataTable.Header>
+
+              {filteredData.slice(from, to).map((usuario, index) => (
+                <DataTable.Row
+                  key={index}
+                  style={[
+                    styles.fila,
+                    index % 2 === 0 ? styles.filaPar : styles.filaImpar,
+                  ]}
+                >
+                  <DataTable.Cell style={styles.tablaBody}>
+                    <Text style={styles.textCell}>{usuario.ID}</Text>
+                  </DataTable.Cell>
+                  <DataTable.Cell style={styles.tablaBody}>
+                    <Text style={styles.textCell}>{usuario.Primer_Nombre}</Text>
+                  </DataTable.Cell>
+                  <DataTable.Cell style={styles.tablaBody}>
+                    <Text style={styles.textCell}>{usuario.Segundo_Nombre}</Text>
+                  </DataTable.Cell>
+                  <DataTable.Cell style={styles.tablaBody}>
+                    <Text style={styles.textCell}>{usuario.Primer_Apellido}</Text>
+                  </DataTable.Cell>
+                  <DataTable.Cell style={styles.tablaBody}>
+                    <Text style={styles.textCell}>{usuario.Segundo_Apellido}</Text>
+                  </DataTable.Cell>
+                </DataTable.Row>
+              ))}
+
+              {/* Paginación */}
+              <DataTable.Pagination
+                page={page}
+                numberOfPages={Math.ceil(filteredData.length / itemsPerPage)}
+                onPageChange={(p) => setPage(p)}
+                label={`${from + 1}-${to} de ${filteredData.length}`}
+                numberOfItemsPerPage={itemsPerPage}
+                showFastPagination
+              />
+            </DataTable>
+          </ScrollView>
+        </View>
+
+        <Footer />
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: colors.fondo 
-  },
-  scrollContent: { 
-    padding: 15,
-    paddingBottom: 20 
-  },
-  loading: { 
-    flex: 1, 
-    justifyContent: "center", 
-    alignItems: "center" 
-  },
-  banner: { 
-    marginBottom: 20, 
-    alignItems: "center" 
-  },
-  bannerTitle: { 
-    fontSize: 22, 
-    fontWeight: "bold", 
-    color: colors.azulPrimario 
-  },
-  bannerSubtitle: { 
-    fontSize: 16, 
-    color: colors.grisOscuro,
-    marginBottom: 5
-  },
-  cursoId: {
-    fontSize: 14,
-    color: colors.gris,
-    fontStyle: 'italic'
-  },
-  compañeroItem: {
-    backgroundColor: colors.blanco2,
-    borderRadius: 8,
-    padding: 15,
-    marginVertical: 8,
-    flexDirection: "row",
+  container: { flex: 1, backgroundColor: colors.fondo },
+  loading: { flex: 1, justifyContent: "center", alignItems: "center" },
+
+  banner: {
+    marginTop: 15,
+    marginBottom: 10,
     alignItems: "center",
+    backgroundColor: colors.blanco2,
+    padding: 15,
+    borderRadius: 15,
     elevation: 2,
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
+    width: "90%",
   },
-  avatarPlaceholder: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: colors.azulPrimario,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 15,
-  },
-  avatarText: {
-    color: colors.blanco2,
+  bannerTitle: {
+    fontSize: 20,
     fontWeight: "bold",
+    color: colors.azulPrimario,
+  },
+  bannerSubtitle: {
     fontSize: 16,
+    color: colors.grisOscuro,
+    marginTop: 5,
   },
-  compañeroInfo: {
-    flex: 1,
+
+  contenedorTabla: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 15,
+    width: "90%",
+    marginVertical: 20,
+    elevation: 2,
   },
-  nombre: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: colors.azul,
-    marginBottom: 4,
+  searchInput: {
+    borderWidth: 1,
+    borderColor: colors.azulSecundario,
+    padding: 10,
+    marginBottom: 12,
+    borderRadius: 10,
+    backgroundColor: "#f9f9f9",
+    fontSize: 14,
   },
-  id: {
+  infoRegistros: {
+    marginBottom: 8,
     fontSize: 14,
     color: colors.grisOscuro,
   },
-  emptyContainer: {
-    padding: 20,
-    alignItems: "center",
+
+  headerRow: {
+    backgroundColor: colors.azulPrimario,
   },
-  emptyText: {
-    fontSize: 16,
+  tablaHead: {
+    justifyContent: "center",
+    minWidth: 90,
+  },
+  fila: {
+    borderRadius: 8,
+  },
+  filaPar: { backgroundColor: "#f5faff" },
+  filaImpar: { backgroundColor: "#fff" },
+
+  tablaBody: {
+    justifyContent: "center",
+    width: 100,
+    paddingVertical: 5,
+  },
+  textCell: {
+    fontSize: 14,
     color: colors.grisOscuro,
-    fontStyle: "italic",
   },
 });
