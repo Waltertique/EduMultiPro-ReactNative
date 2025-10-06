@@ -1,16 +1,18 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as React from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 
 import Encabezado from './Encabezado';
 import Footer from './footer';
 import colors from './colors'; 
-import Usuario from './Admin/Usuario'; // pantalla destino
-import PrincipalCoordinador from './Coordinador/PrincipalCoordinador';
-import PrincipalProfesor from './Profesor/PrincipalProfesor';
-import PrincipalAlumno from './Alumno/PrincipalAlumno';
+import AdminStack from './Admin/AdminStack';
+import CoordinadorStack from './Coordinador/CoordinadorStack';
+import RutasProfesor from './Profesor/RutasProfesor';   // 👈 Usamos el stack
+import RutasAlumno from './Alumno/RutasAlumno';         // 👈 Usamos el stack
 
-import * as React from 'react';
+import { apiFetch } from "./api"; // helper axios/fetch
 
 const Stack = createNativeStackNavigator();
 
@@ -19,26 +21,46 @@ function LoginScreen({ navigation }) {
   const [correo, setCorreo] = React.useState('');
   const [contrasena, setContrasena] = React.useState('');
 
-  const handleLogin = () => {
-    if (contrasena === '12345') {
-      switch (correo) {
-        case 'admin@gmail.com':
-          navigation.navigate('Usuario');
-          break;
-        case 'coordinador@gmail.com':
-          navigation.navigate('PrincipalCoordinador');
-          break;
-        case 'profesor@gmail.com':
-          navigation.navigate('PrincipalProfesor');
-          break;
-        case 'alumno@gmail.com':
-          navigation.navigate('PrincipalAlumno');
-          break;
-        default:
-          Alert.alert('Error', 'Usuario o contraseña incorrecto');
+  const handleLogin = async () => {
+    try {
+      const response = await apiFetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ correo, contrasena })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+
+        await AsyncStorage.setItem("token", data.token);
+        await AsyncStorage.setItem("usuario", JSON.stringify(data.usuario));
+
+        const { rol } = data.usuario;
+
+        // Navegar según rol
+        switch (rol) {
+          case "R004":
+            navigation.replace("AdminStack");
+            break;
+          case "R003":
+            navigation.replace("CoordinadorStack");
+            break;
+          case "R002":
+            navigation.replace("RutasProfesor");   // 👈 Ahora rutas del profesor
+            break;
+          case "R001":
+            navigation.replace("RutasAlumno");     // 👈 Ahora rutas del alumno
+            break;
+          default:
+            Alert.alert("Error", "Rol no reconocido");
+        }
+      } else {
+        const err = await response.json();
+        Alert.alert("Error", err.mensaje);
       }
-    } else {
-      Alert.alert('Error', 'Usuario o contraseña incorrecto');
+    } catch (error) {
+      console.error("❌ Error al iniciar sesión:", error);
+      Alert.alert("Error", "No se pudo conectar al servidor");
     }
   };
 
@@ -84,34 +106,43 @@ function LoginScreen({ navigation }) {
   );
 }
 
-// 👉 App envuelve el Stack de navegación
+// 👉 App principal
 export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator>
+        {/* Login */}
         <Stack.Screen 
           name="Login" 
           component={LoginScreen} 
           options={{ headerShown: false }} 
         />
+
+        {/* Admin */}
         <Stack.Screen 
-          name="Usuario" 
-          component={Usuario} 
+          name="AdminStack" 
+          component={AdminStack} 
           options={{ headerShown: false }} 
         />
+
+        {/* Coordinador */}
         <Stack.Screen 
-          name="PrincipalCoordinador" 
-          component={PrincipalCoordinador} 
+          name="CoordinadorStack" 
+          component={CoordinadorStack} 
           options={{ headerShown: false }} 
         />
+
+        {/* Profesor */}
         <Stack.Screen 
-          name="PrincipalProfesor" 
-          component={PrincipalProfesor} 
+          name="RutasProfesor" 
+          component={RutasProfesor} 
           options={{ headerShown: false }} 
         />
+
+        {/* Alumno */}
         <Stack.Screen 
-          name="PrincipalAlumno" 
-          component={PrincipalAlumno} 
+          name="RutasAlumno" 
+          component={RutasAlumno} 
           options={{ headerShown: false }} 
         />
       </Stack.Navigator>
@@ -121,21 +152,19 @@ export default function App() {
 
 const styles = StyleSheet.create({
   contenedor: {
-    flex: 1, // ocupa toda la pantalla
+    flex: 1,
     flexDirection: 'column',
-    backgroundColor: colors.fondo, // usamos variable
+    backgroundColor: colors.fondo,
     margin: 0,
     padding: 0,
     width: '100%',
   },
-
   centro: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 35,
   },
-
   caja:{
     backgroundColor: 'white',
     width: '85%',
@@ -152,14 +181,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-
   primerTitulo: {
     fontSize: 25,
     fontWeight: 'bold',
     color: '#007bbd',
     marginBottom: 10,
   },
-
   input1: {
     borderWidth: 2,
     borderRadius: 10,
@@ -169,7 +196,6 @@ const styles = StyleSheet.create({
     marginTop: 15,
     paddingHorizontal: 15,
   },
-
   boton: {
     backgroundColor: '#007bbd',
     width: '80%',
@@ -183,7 +209,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-
   enlaceContraseña: {
     color: '#007bbd',
     marginTop: 10,

@@ -1,43 +1,81 @@
-import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-
 import * as React from 'react';
 import { DataTable } from 'react-native-paper';
 
 import Encabezado from '../Encabezado';
 import Footer from '../footer';
 import Desplegable from '../Desplegable';
-import colors from '../colors'; // 👈 archivo donde guardamos las variables
+import colors from '../colors';
+import { apiFetch } from "../api"; // 👈 importa tu helper
 
-export default function Usuario() {
+export default function Usuario({ navigation }) {
 
+    const [usuarios, setUsuarios] = React.useState([]);
     const [page, setPage] = React.useState(0);
-    const itemsPerPage = 5;
+    const itemsPerPage = 10;
     const [search, setSearch] = React.useState('');
 
-    // Datos estáticos de ejemplo
-    const data = [
-        { id: '1', pNombre: 'Juan', sNombre: 'Carlos', pApellido: 'Pérez', sApellido: 'Gómez' },
-        { id: '2', pNombre: 'María', sNombre: 'Luisa', pApellido: 'Rodríguez', sApellido: 'Díaz' },
-        { id: '3', pNombre: 'Pedro', sNombre: 'José', pApellido: 'Martínez', sApellido: 'Torres' },
-        { id: '4', pNombre: 'Ana', sNombre: 'Isabel', pApellido: 'Ramírez', sApellido: 'Mora' },
-        { id: '5', pNombre: 'Sofía', sNombre: 'Alejandra', pApellido: 'García', sApellido: 'López' },
-        { id: '6', pNombre: 'Luis', sNombre: 'Miguel', pApellido: 'Fernández', sApellido: 'Castro' },
-    ];
+    // 🔹 Obtener usuarios del backend
+    const obtenerUsuarios = async () => {
+        try {
+        const res = await apiFetch("/Usuarios");
+        // Si pruebas en físico: usa http://IP_DE_TU_PC:3000
+        const data = await res.json();
+        setUsuarios(data);
+        } catch (err) {
+        console.error("❌ Error al obtener usuarios:", err);
+        Alert.alert("Error", "No se pudieron cargar los usuarios");
+        }
+    };
 
-    // Filtrado por búsqueda
-    const filteredData = data.filter(
+    // 🔹 Eliminar usuario
+    const eliminarUsuario = async (id) => {
+        Alert.alert(
+        "Confirmar",
+        "¿Seguro que quieres eliminar este usuario?",
+        [
+            { text: "Cancelar", style: "cancel" },
+            { 
+            text: "Eliminar", 
+            style: "destructive",
+            onPress: async () => {
+                try {
+                const res = await apiFetch(`/usuarios/${id}`, {
+                    method: "DELETE",
+                });
+                const data = await res.json();
+                Alert.alert("Info", data.mensaje);
+
+                // Actualizar lista en memoria
+                setUsuarios((prev) => prev.filter((u) => u.ID !== id));
+                } catch (error) {
+                console.error("❌ Error al eliminar usuario:", error);
+                Alert.alert("Error", "No se pudo eliminar el usuario");
+                }
+            }
+            }
+        ]
+        );
+    };
+
+    // Filtrado
+    const filteredData = usuarios.filter(
         (item) =>
-        item.id.includes(search) ||
-        item.pNombre.toLowerCase().includes(search.toLowerCase()) ||
-        item.sNombre.toLowerCase().includes(search.toLowerCase()) ||
-        item.pApellido.toLowerCase().includes(search.toLowerCase()) ||
-        item.sApellido.toLowerCase().includes(search.toLowerCase())
+        item.ID.toString().includes(search) ||
+        item.Primer_Nombre?.toLowerCase().includes(search.toLowerCase()) ||
+        item.Segundo_Nombre?.toLowerCase().includes(search.toLowerCase()) ||
+        item.Primer_Apellido?.toLowerCase().includes(search.toLowerCase()) ||
+        item.Segundo_Apellido?.toLowerCase().includes(search.toLowerCase())
     );
 
     // Paginación
     const from = page * itemsPerPage;
     const to = Math.min((page + 1) * itemsPerPage, filteredData.length);
+
+    React.useEffect(() => {
+        obtenerUsuarios();
+    }, []);
 
   return (
     <View style={styles.contenedor}>
@@ -54,7 +92,7 @@ export default function Usuario() {
             <View style={styles.tituloUsuario}>
                 <Text style={styles.titleUsuario}>Gestion de Usuarios</Text>
                 
-                <TouchableOpacity style={styles.botonCrearUsuario}>
+                <TouchableOpacity style={styles.botonCrearUsuario} onPress={() => navigation.navigate('CrearUsuario')}>
                     <FontAwesome name="user" size={16} color="#fff" />
                     <Text style={styles.textoCrearUsuario}> Crear</Text>
                 </TouchableOpacity>
@@ -84,32 +122,39 @@ export default function Usuario() {
                     <ScrollView horizontal>
                         <DataTable>
                         <DataTable.Header>
-                            <DataTable.Title style={{ paddingRight: 20, minWidth: 40 }}>ID</DataTable.Title>
-                            <DataTable.Title style={{ paddingRight: 20, minWidth: 40 }}>P Nombre</DataTable.Title>
-                            <DataTable.Title style={{ paddingRight: 20, minWidth: 40 }}>S Nombre</DataTable.Title>
-                            <DataTable.Title style={{ paddingRight: 20, minWidth: 40 }}>P Apellido</DataTable.Title>
-                            <DataTable.Title style={{ paddingRight: 20, minWidth: 40 }}>S Apellido</DataTable.Title>
-                            <DataTable.Title style={{ paddingRight: 20, minWidth: 40 }}>Infomacion</DataTable.Title>
-                            <DataTable.Title style={{ paddingRight: 20, minWidth: 40 }}>Eliminar</DataTable.Title>
+                            <DataTable.Title style={styles.tablaHead}>ID</DataTable.Title>
+                            <DataTable.Title style={styles.tablaHead}>P Nombre</DataTable.Title>
+                            <DataTable.Title style={styles.tablaHead}>S Nombre</DataTable.Title>
+                            <DataTable.Title style={styles.tablaHead}>P Apellido</DataTable.Title>
+                            <DataTable.Title style={styles.tablaHead}>S Apellido</DataTable.Title>
+                            <DataTable.Title style={styles.tablaHead}>Infomacion</DataTable.Title>
+                            <DataTable.Title style={styles.tablaHead}>Eliminar</DataTable.Title>
                         </DataTable.Header>
 
                         {filteredData.slice(from, to).map((usuario, index) => (
                             <DataTable.Row key={index}>
-                            <DataTable.Cell style={{ paddingRight: 20, minWidth: 40 }}>{usuario.id}</DataTable.Cell>
-                            <DataTable.Cell style={{ paddingRight: 20, minWidth: 40 }}>{usuario.pNombre}</DataTable.Cell>
-                            <DataTable.Cell style={{ paddingRight: 20, minWidth: 40 }}>{usuario.sNombre}</DataTable.Cell>
-                            <DataTable.Cell style={{ paddingRight: 20, minWidth: 40 }}>{usuario.pApellido}</DataTable.Cell>
-                            <DataTable.Cell style={{ paddingRight: 20, minWidth: 40 }}>{usuario.sApellido}</DataTable.Cell>
-                            <DataTable.Cell style={{ paddingRight: 20, minWidth: 40, justifyContent: 'center'}}>
-                                <TouchableOpacity style={styles.botonAccion}>
-                                    <FontAwesome name="info" size={16} color="#fff" />
-                                </TouchableOpacity>
-                            </DataTable.Cell>
-                            <DataTable.Cell style={{ paddingRight: 20, minWidth: 40, justifyContent: 'center'}}>
-                                <TouchableOpacity style={styles.botonEliminar}>
-                                    <FontAwesome name="trash" size={16} color="#fff" />
-                                </TouchableOpacity>
-                            </DataTable.Cell>
+
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.ID}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.Primer_Nombre}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.Segundo_Nombre}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.Primer_Apellido}</Text></DataTable.Cell>
+                                <DataTable.Cell style={styles.tablaBody}><Text numberOfLines={1} ellipsizeMode="tail">{usuario.Segundo_Apellido}</Text></DataTable.Cell>
+
+                                <DataTable.Cell style={styles.tablaBody}>
+                                    <TouchableOpacity 
+                                        style={styles.botonAccion} 
+                                        onPress={() => navigation.navigate('VerUsuario', { id: usuario.ID })}
+                                        >
+                                        <FontAwesome name="info" size={16} color="#fff" />
+                                    </TouchableOpacity>
+                                </DataTable.Cell>
+
+                                <DataTable.Cell style={styles.tablaBody}>
+                                    <TouchableOpacity style={styles.botonEliminar} onPress={() => eliminarUsuario(usuario.ID)}>
+                                        <FontAwesome name="trash" size={16} color="#fff" />
+                                    </TouchableOpacity>
+                                </DataTable.Cell>
+
                             </DataTable.Row>
                         ))}
 
@@ -204,7 +249,23 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#333',
     },
-    
+
+    // Estilos de la tabla
+    // Estilos th
+    tablaHead: {
+        justifyContent: 'center', 
+        minWidth: 90, 
+        borderWidth: 1, 
+        borderColor: colors.azulPrimario
+    },
+    // Estilos td
+    tablaBody: {
+        justifyContent: 'center', 
+        width: 100,
+        borderWidth: 1, 
+        borderColor: colors.azulPrimario
+    },
+    // Estilos botones
     botonAccion: {
         alignItems: 'center',
         backgroundColor: '#17a2b8',
@@ -213,6 +274,16 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         marginHorizontal: 2,
     },
+
+    botonModificar: {
+        alignItems: 'center',
+        backgroundColor: '#2600FFFF',
+        padding: 5,
+        width: 25,
+        borderRadius: 5,
+        marginHorizontal: 2,
+    },
+
     botonEliminar: {
         alignItems: 'center',
         backgroundColor: '#dc3545',
@@ -221,5 +292,6 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         marginHorizontal: 2,
     },
+    // Fin tabla
 
 });
